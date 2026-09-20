@@ -3,6 +3,7 @@ import {
   CyclicAccessDataError,
   NotEnoughValuesForRefError,
   NotExistRefFieldError,
+  RefWhereFunctionError,
   TryRefANoKeyFieldError,
 } from "../../../../errors";
 import { GenerateProps, InputTreeNode } from "../node/input-tree-node";
@@ -132,16 +133,29 @@ export class RefValueNode extends InputTreeNode {
     for (const refNode of allRefValues) {
       if (currentDocument !== refNode.document) {
         if (this.refField.where) {
-          const isAccepted = await this.refField.where({
-            store: new DatasetStore({
-              schemasStore: this.schemasStore,
-              omitCurrentDocument: refNode.document,
-              omitResolver: currentSchemaResolver,
-              caller: this.getFieldRoute(),
-            }),
-            refFields: refNode.document.getDocumentObject(),
-            currentFields: currentDocument.getDocumentObject(),
-          });
+          let isAccepted: boolean;
+
+          try {
+            isAccepted = await this.refField.where({
+              store: new DatasetStore({
+                schemasStore: this.schemasStore,
+                omitCurrentDocument: refNode.document,
+                omitResolver: currentSchemaResolver,
+                caller: this.getFieldRoute(),
+              }),
+              refFields: refNode.document.getDocumentObject(),
+              currentFields: currentDocument.getDocumentObject(),
+            });
+          } catch (error) {
+            if (error instanceof ChacaError) {
+              throw error;
+            }
+
+            throw new RefWhereFunctionError(this.getRefFieldRoute().string(), {
+              route: this.getRouteString(),
+              error: error,
+            });
+          }
 
           if (isAccepted) {
             returnRefValues.push(refNode.resultNode);
