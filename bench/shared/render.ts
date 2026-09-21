@@ -67,6 +67,35 @@ export function bytes(value: number): string {
   return `${(value / 1024 / 1024).toFixed(2)} MB`;
 }
 
+const SPARKS = ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"];
+
+/**
+ * Serie temporal en una línea: cada carácter es una corrida, y la altura va del
+ * mínimo al máximo **de esa fila**. Sirve para ver la forma —plana, escalón,
+ * deriva—, no para leer valores: el número exacto va al lado.
+ */
+export function sparkline(values: number[]): string {
+  if (values.length === 0) {
+    return "";
+  }
+
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const span = max - min;
+
+  return values
+    .map((value) => {
+      if (span === 0) {
+        return SPARKS[0];
+      }
+
+      const level = Math.round(((value - min) / span) * (SPARKS.length - 1));
+
+      return SPARKS[level];
+    })
+    .join("");
+}
+
 export interface Row {
   /** Etiqueta de la izquierda. */
   name: string;

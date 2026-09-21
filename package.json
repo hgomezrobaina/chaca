@@ -62,7 +62,9 @@
     "bench:save": "tsx bench/report.ts --save",
     "bench:scaling": "tsx bench/scaling.ts",
     "bench:size": "tsx bench/size.ts",
-    "bench:tests": "tsx bench/tests-report.ts"
+    "bench:tests": "tsx bench/tests-report.ts",
+    "bench:history": "tsx bench/history.ts",
+    "bench:ci": "vitest bench --run && tsx bench/report.ts --no-compare --no-history"
   },
   "repository": {
     "type": "git",

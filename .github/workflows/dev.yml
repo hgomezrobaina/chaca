@@ -39,3 +39,12 @@ jobs:
 
       - name: 🧪 Test
         run: pnpm test
+
+      # Sólo informa: nada falla por un número. El baseline versionado se midió
+      # en otra máquina, así que se corre con `--no-compare` y lo único que se
+      # busca de momento es cuánta varianza tiene el runner entre corridas.
+      # Cuando haya ese dato se decide el umbral (o se pasa a CodSpeed).
+      - name: 📈 Benchmarks
+        if: matrix.node-version == '22.x'
+        continue-on-error: true
+        run: pnpm bench:ci

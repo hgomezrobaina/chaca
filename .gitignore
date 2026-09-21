@@ -37,3 +37,4 @@ claude-*.tmp
 
 # benchmarks (el baseline sí se versiona)
 /bench/results
+/bench/history

@@ -1,5 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
+import { append, type HistoryCase } from "./shared/history";
 import { TARGET } from "./shared/load";
 import { BAR_WIDTH, bar, color, ops, time } from "./shared/render";
 
@@ -11,10 +12,15 @@ import { BAR_WIDTH, bar, color, ops, time } from "./shared/render";
  * nada. Esto dibuja una barra por caso —tiempo relativo dentro de su grupo— y,
  * lo que de verdad importa, el delta contra el baseline guardado.
  *
+ * Cada corrida deja además un registro en `bench/history/`, que es de donde
+ * `pnpm bench:history` saca la evolución.
+ *
  * Uso:
  *   tsx bench/report.ts                 dibuja bench/results/last.json
  *   tsx bench/report.ts --save          promueve ese resultado a baseline
  *   tsx bench/report.ts --json <file>   dibuja otro fichero
+ *   tsx bench/report.ts --no-compare    sin delta contra el baseline (CI)
+ *   tsx bench/report.ts --no-history    sin guardar la corrida
  */
 
 const BENCH_DIR = resolve(__dirname);
@@ -119,7 +125,11 @@ function save(from: string): void {
   console.log(color.green(`Baseline fijado desde ${from}`));
 }
 
-function draw(report: Report, baseline: Report | undefined): void {
+function draw(
+  report: Report,
+  baseline: Report | undefined,
+  noCompare = false,
+): void {
   const before = baseline ? index(baseline) : undefined;
 
   const header = [
@@ -187,9 +197,11 @@ function draw(report: Report, baseline: Report | undefined): void {
 
   if (!baseline) {
     console.log(
-      color.yellow(
-        ` sin baseline: 'pnpm bench:save' fija el actual como referencia\n`,
-      ),
+      noCompare
+        ? color.dim(` --no-compare: cifras sueltas, sin delta\n`)
+        : color.yellow(
+            ` sin baseline: 'pnpm bench:save' fija el actual como referencia\n`,
+          ),
     );
 
     return;
@@ -218,6 +230,21 @@ function draw(report: Report, baseline: Report | undefined): void {
   console.log("");
 }
 
+/** El registro compacto que se guarda en el histórico. */
+function casesOf(report: Report): Record<string, HistoryCase> {
+  const cases: Record<string, HistoryCase> = {};
+
+  for (const [key, benchmark] of index(report)) {
+    cases[key] = {
+      mean: benchmark.mean,
+      hz: benchmark.hz,
+      rme: benchmark.rme,
+    };
+  }
+
+  return cases;
+}
+
 function main(): void {
   const args = process.argv.slice(2);
   const jsonFlag = args.indexOf("--json");
@@ -233,10 +260,21 @@ function main(): void {
 
   if (!report) {
     console.error(`No hay resultados en ${file}. Corre 'pnpm bench' antes.`);
-    process.exit(1);
+
+    return process.exit(1);
   }
 
-  draw(report, read(BASELINE));
+  // En CI el baseline versionado se midió en otra máquina, así que su delta no
+  // significa nada: `--no-compare` imprime sólo las cifras de esta corrida.
+  const noCompare = args.includes("--no-compare");
+
+  draw(report, noCompare ? undefined : read(BASELINE), noCompare);
+
+  if (!args.includes("--no-history")) {
+    const saved = append(casesOf(report));
+
+    console.log(color.dim(` guardado en el histórico: ${basename(saved)}\n`));
+  }
 }
 
 main();
