@@ -1,9 +1,9 @@
 # Benchmarks
 
 ```shell
-npm run bench          # mide y dibuja
-npm run bench:report   # vuelve a dibujar el último resultado, sin medir
-npm run bench:save     # fija el último resultado como baseline
+pnpm bench          # mide y dibuja
+pnpm bench:report   # vuelve a dibujar el último resultado, sin medir
+pnpm bench:save     # fija el último resultado como baseline
 ```
 
 `bench/baseline.json` se versiona: es la referencia contra la que se pinta el delta.
@@ -25,9 +25,9 @@ instala el usuario —pasado por el treeshake de tsup y bajado a `es2020`— hay
 antes y cambiar el objetivo:
 
 ```shell
-npm run build:lib
-$env:CHACA_BENCH_TARGET = "dist"; npm run bench    # PowerShell
-CHACA_BENCH_TARGET=dist npm run bench              # bash
+pnpm build:lib
+$env:CHACA_BENCH_TARGET = "dist"; pnpm bench    # PowerShell
+CHACA_BENCH_TARGET=dist pnpm bench              # bash
 ```
 
 ## Leer el delta
