@@ -33,6 +33,17 @@
 
   The original error is preserved untouched in `originalError` and as the standard `cause`. A `ChacaError` thrown by a field's function (for example one raised while reading another field through the `store`) is never wrapped: it already carries its own context and type, and rethrowing it as-is keeps the deepest, most useful error visible with `instanceof`.
 
+### `modules.vehicle.vin`
+
+- **New `modules.vehicle.vin()` method**, returning a 17-character Vehicle Identification Number ([ISO 3779](https://en.wikipedia.org/wiki/Vehicle_identification_number)). The check digit (position 9) is computed with the same algorithm real-world VIN validators use, so the result validates as genuinely correct, not just plausible-looking. It also starts with one of a curated list of real World Manufacturer Identifiers (exposed as `modules.vehicle.constants.wmi`) and encodes a model year at position 10.
+
+  ```ts
+  import { modules } from "chaca";
+
+  modules.vehicle.vin(); // '1HGBH41JXMN109186'
+  modules.vehicle.vin({ year: 2018 }); // 'WBA5A5C50JD123456'
+  ```
+
 ## 🪛 Fix
 
 - **Every `modules.image` method returned a dead url.** The whole module pointed at `lexica.art`, whose API now answers `500` (and `403` from Cloudflare at the root), and `modules.image.animatedAvatar` pointed at `api.multiavatar.com`, which now answers `403`. All image methods now return urls that resolve to an actual image again.
