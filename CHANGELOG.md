@@ -1,3 +1,18 @@
+# chaca@2.3.0
+
+## 🌚 Features
+
+### `modules.vehicle.vin`
+
+- **New `modules.vehicle.vin()` method**, returning a 17-character Vehicle Identification Number ([ISO 3779](https://en.wikipedia.org/wiki/Vehicle_identification_number)). The check digit (position 9) is computed with the same algorithm real-world VIN validators use, so the result validates as genuinely correct, not just plausible-looking. It also starts with one of a curated list of real World Manufacturer Identifiers (exposed as `modules.vehicle.constants.wmi`) and encodes a model year at position 10.
+
+  ```ts
+  import { modules } from "chaca";
+
+  modules.vehicle.vin(); // '1HGBH41JXMN109186'
+  modules.vehicle.vin({ year: 2018 }); // 'WBA5A5C50JD123456'
+  ```
+
 # chaca@2.2.1
 
 ## 🪛 Fix
