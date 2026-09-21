@@ -142,7 +142,6 @@ export interface FieldGenerationErrorProps {
  */
 export abstract class FieldGenerationError extends ChacaError {
   readonly fieldRoute: string;
-  readonly origin: string;
   readonly index: number | null;
   readonly originalError: unknown;
 
@@ -158,7 +157,6 @@ export abstract class FieldGenerationError extends ChacaError {
 
     this.name = "ChacaError.FieldGenerationError";
     this.fieldRoute = route;
-    this.origin = origin;
     this.index = typeof index === "number" ? index : null;
     this.originalError = error;
   }
