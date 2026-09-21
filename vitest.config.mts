@@ -7,6 +7,10 @@ export default defineConfig({
     outputFile: {
       html: "./test-report/index.html",
     },
+    benchmark: {
+      include: ["bench/**/*.bench.ts"],
+      outputJson: "./bench/results/last.json",
+    },
     coverage: {
       provider: "istanbul",
       reporter: ["json", "html"],

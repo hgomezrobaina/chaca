@@ -52,4 +52,13 @@ export default tseslint.config(
       eqeqeq: "error",
     },
   },
+
+  // El reporte de benchmarks es una herramienta de consola: imprimir es su
+  // trabajo, no un olvido de depuración.
+  {
+    files: ["bench/**/*.ts"],
+    rules: {
+      "no-console": "off",
+    },
+  },
 );

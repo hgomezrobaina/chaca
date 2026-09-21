@@ -56,7 +56,10 @@
     "lint": "eslint .",
     "fix": "npm run lint && npm run prettier-format",
     "prepublishOnly": "npm run build",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "bench": "vitest bench --run && tsx bench/report.ts",
+    "bench:report": "tsx bench/report.ts",
+    "bench:save": "tsx bench/report.ts --save"
   },
   "repository": {
     "type": "git",
