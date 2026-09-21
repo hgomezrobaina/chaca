@@ -1,4 +1,37 @@
-# chaca@2.2.1
+# chaca@2.3.0
+
+## 🌚 Features
+
+### Errors now say which field caused them
+
+- **When a `custom`, `isArray`, `possibleNull`, `pick.count`, `probability.chance` or `ref.where` function throws, the error now says which field failed, in which document, and while doing what** — instead of the bare error propagating with no way to tell where in the schema it came from. All of these extend the new `FieldGenerationError`:
+  - `ValueGenerationError` — a field's own value function (`custom`, `pick`, `probability`, ...) threw.
+  - `PossibleNullFunctionError` — a field's `possibleNull` function threw.
+  - `IsArrayFunctionError` — a field's `isArray` function threw.
+  - `RefWhereFunctionError` — a `ref`'s `where` function threw. Also names the field it references.
+  - `SchemaCountFunctionError` — a schema's `documents` function threw. Not a `FieldGenerationError`, since it isn't tied to a field or a document.
+
+  ```ts
+  import { chaca, Errors } from "chaca";
+
+  const schema = chaca.schema({
+    email: () => {
+      throw new Error("faker.internet.emial is not a function");
+    },
+  });
+
+  try {
+    await schema.object();
+  } catch (error) {
+    if (error instanceof Errors.FieldGenerationError) {
+      console.log(error.fieldRoute); // "Schema.email"
+      console.log(error.message); // "On field 'Schema.email' (document 0), while generating its value. faker.internet.emial is not a function"
+      console.log(error.originalError); // the original Error thrown by the function
+    }
+  }
+  ```
+
+  The original error is preserved untouched in `originalError` and as the standard `cause`. A `ChacaError` thrown by a field's function (for example one raised while reading another field through the `store`) is never wrapped: it already carries its own context and type, and rethrowing it as-is keeps the deepest, most useful error visible with `instanceof`.
 
 ## 🪛 Fix
 
@@ -9,6 +42,7 @@
 
 ## ⚠️ Behavior changes
 
+- **A non-`ChacaError` thrown inside a field's function is no longer the error you catch.** It now arrives wrapped in a `FieldGenerationError` subclass (see above), with the original error moved to `.cause` / `.originalError`. Code that does `catch (error) { if (error.message === "...") }` on one of these should switch to checking `error.cause?.message` (or `error.originalError`), and `instanceof` checks for anything other than `Error`/`ChacaError` should check the `cause` chain instead.
 - Image urls are now served by **loremflickr** and have the shape `https://loremflickr.com/<width>/<height>/<tags>?lock=<n>` — the size lives in the path, not in query params, and the category is a path segment rather than a `q` query param. This matches the output the README has always documented. Update any snapshot or assertion that matched the previous `lexica.art` url.
 - `modules.image.animatedAvatar` now returns a **dicebear** url (`https://api.dicebear.com/9.x/adventurer/svg?seed=<n>`) instead of a multiavatar one. Its seed range also widened from 1,000 to 1,000,000 possible avatars, so large datasets no longer repeat the same handful of pictures.
 - A `width` or `height` of `0` or less is clamped to `1` instead of producing an invalid url.

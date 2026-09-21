@@ -41,6 +41,7 @@ import {
   NotExistRefFieldError,
   EmptyEnumValuesError,
   PickFieldDefinitionError,
+  FieldGenerationError,
 } from "./errors";
 
 import {
@@ -111,6 +112,7 @@ export {
   NotExistRefFieldError,
   EmptyEnumValuesError,
   PickFieldDefinitionError,
+  FieldGenerationError,
 };
 
 /**
