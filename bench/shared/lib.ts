@@ -1,23 +1,12 @@
-import type { Chaca } from "../../src/Chaca";
-import type { ChacaModules } from "../../src/modules";
+import { loadChaca } from "./load";
+
+export { TARGET } from "./load";
 
 /**
- * De dónde se carga la librería que se mide.
- *
- * `src` (por defecto) es lo cómodo para iterar: no hace falta construir antes
- * de medir un cambio. `dist` es lo que realmente instala el usuario —pasado por
- * el treeshake de tsup y bajado a `es2020`—, así que es el que vale para dar
- * cifras públicas. `CHACA_BENCH_TARGET=dist npm run bench` lo cambia.
+ * Atajo con `await` de primer nivel para los ficheros `*.bench.ts`, que
+ * ejecuta vitest como ESM. Los scripts sueltos usan `loadChaca()` directamente.
  */
-export const TARGET =
-  process.env.CHACA_BENCH_TARGET === "dist" ? "dist" : "src";
-
-const entry = TARGET === "dist" ? "../../dist/index.mjs" : "../../src/index";
-
-const lib = (await import(/* @vite-ignore */ entry)) as {
-  chaca: Chaca;
-  modules: ChacaModules;
-};
+const lib = await loadChaca();
 
 export const chaca = lib.chaca;
 export const modules = lib.modules;

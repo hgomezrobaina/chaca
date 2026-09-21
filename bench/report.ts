@@ -1,5 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
+import { TARGET } from "./shared/load";
+import { BAR_WIDTH, bar, color, ops, time } from "./shared/render";
 
 /**
  * Dibuja en consola el JSON que deja `vitest bench --outputJson`.
@@ -40,57 +42,6 @@ interface BenchFile {
 
 interface Report {
   files: BenchFile[];
-}
-
-const useColor = Boolean(process.stdout.isTTY) && !process.env.NO_COLOR;
-
-function paint(code: string, text: string): string {
-  return useColor ? `\u001b[${code}m${text}\u001b[0m` : text;
-}
-
-const color = {
-  bold: (t: string) => paint("1", t),
-  dim: (t: string) => paint("2", t),
-  red: (t: string) => paint("31", t),
-  green: (t: string) => paint("32", t),
-  yellow: (t: string) => paint("33", t),
-  cyan: (t: string) => paint("36", t),
-};
-
-const BAR_WIDTH = 24;
-const BLOCKS = ["", "▏", "▎", "▍", "▌", "▋", "▊", "▉"];
-
-/** Barra con resolución de un octavo de carácter. */
-function bar(value: number, max: number): string {
-  const ratio = max > 0 ? value / max : 0;
-  const eighths = Math.max(1, Math.round(ratio * BAR_WIDTH * 8));
-  const full = Math.floor(eighths / 8);
-  const rest = eighths % 8;
-
-  return "█".repeat(full) + BLOCKS[rest];
-}
-
-function time(ms: number): string {
-  if (ms < 0.001) {
-    return `${(ms * 1e6).toFixed(0)} ns`;
-  }
-
-  if (ms < 1) {
-    return `${(ms * 1000).toFixed(1)} µs`;
-  }
-
-  if (ms < 1000) {
-    return `${ms.toFixed(2)} ms`;
-  }
-
-  return `${(ms / 1000).toFixed(2)} s`;
-}
-
-function ops(hz: number): string {
-  const value =
-    hz >= 100 ? Math.round(hz).toLocaleString("en-US") : hz.toFixed(1);
-
-  return `${value} ops/s`;
 }
 
 /**
@@ -158,7 +109,7 @@ function save(from: string): void {
   const report = read(from);
 
   if (!report) {
-    console.error(`No hay resultados en ${from}. Corre 'npm run bench' antes.`);
+    console.error(`No hay resultados en ${from}. Corre 'pnpm bench' antes.`);
     process.exit(1);
   }
 
@@ -170,11 +121,10 @@ function save(from: string): void {
 
 function draw(report: Report, baseline: Report | undefined): void {
   const before = baseline ? index(baseline) : undefined;
-  const target = process.env.CHACA_BENCH_TARGET === "dist" ? "dist" : "src";
 
   const header = [
     color.bold("BENCH"),
-    `chaca · ${color.cyan(target)}`,
+    `chaca · ${color.cyan(TARGET)}`,
     `node ${process.version}`,
     new Date().toLocaleString(),
   ].join("  ·  ");
@@ -238,7 +188,7 @@ function draw(report: Report, baseline: Report | undefined): void {
   if (!baseline) {
     console.log(
       color.yellow(
-        ` sin baseline: 'npm run bench:save' fija el actual como referencia\n`,
+        ` sin baseline: 'pnpm bench:save' fija el actual como referencia\n`,
       ),
     );
 
@@ -282,7 +232,7 @@ function main(): void {
   const report = read(file);
 
   if (!report) {
-    console.error(`No hay resultados en ${file}. Corre 'npm run bench' antes.`);
+    console.error(`No hay resultados en ${file}. Corre 'pnpm bench' antes.`);
     process.exit(1);
   }
 
