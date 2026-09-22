@@ -2,12 +2,22 @@
 
 ## ⚡ Performance
 
+- **A `ref` walked and copied the whole list of candidates once per referencing document, even without a `where`.** With no filter the only rule is that a candidate cannot be the referencing document itself, which can only happen when a schema references itself. Pointing at another schema the answer is the same for every document, so it is now worked out once instead of rebuilt for each one. Generating 3500 documents with plain refs went from 54 ms to 27 ms here, and — more to the point — the cost is finally linear: 10x the documents costs about 10x, not 15x.
+
+- **A `ref` with a `where` rebuilt, on every candidate, things that do not change.** `currentFields` is the same object for all the candidates of one document and was being rebuilt for each of them; the referenced schema is already finished by the time its candidates are filtered, so `refFields` is now built once per candidate document and reused across the documents that reference it. The `where` itself still runs once per (document, candidate) pair — that part is inherent — but each run is much cheaper: the relational benchmark's filtered ref went from 175 ms to 125 ms at 3500 documents.
+
+  End to end with the previous entry, `bench/dataset.bench.ts` at 3500 documents is **6.3x faster** than 2.3.0 (1014 ms → 161 ms), and its 350 → 3500 scaling factor drops from 71x to 33x.
+
 - **Building a document's plain object was quadratic in its number of fields.** Every place that hands your functions a document — `currentFields` in `custom`, `isArray`, `possibleNull`, `pick.count` and `probability.chance`, `refFields`/`currentFields` in a `ref`'s `where`, the results of `store.get()` and `store.currentDocuments()`, and the dataset `generate()` returns — went through a loop that spread the object built so far into a brand new one for each field. A document with 20 fields allocated 20 objects of growing size instead of one, and a `ref` with a `where` paid that twice for every (document, candidate) pair.
 
   Nothing about the result changes — still a fresh object on every call, same keys in the same order — but the relational dataset in the benchmarks is now **4x faster** at 3500 documents (1014 ms → 252 ms) and 2.3x at 350 (14.2 ms → 6.1 ms). The wider your documents, the bigger the difference.
 
 - **`modules.person.firstName()` no longer rebuilds the name list on every call.** Called without a `sex` it fell into a branch that spread `male` and `female` into a brand new array each time, so it was measurably _slower_ than `fullName()` despite doing less work — `fullName()` picks a random sex first and therefore got the language's list by reference. The joined list is now built once per language and reused, which makes `firstName()` about **16x faster** and puts it back ahead of `fullName()`.
 - **`modules.person.prefix()` built its list of prefixes on every call too**, even when given a `sex` and therefore about to ignore it. Same fix: the joined list is built once and reused, and it is no longer built at all when a `sex` is given. Roughly **5x faster** without a `sex` and **4x** with one.
+
+## ⚠️ Behavior changes
+
+- **The `refFields` and `currentFields` objects a `ref`'s `where` receives are now shared between calls, and must be treated as read-only.** `currentFields` is the same object for every candidate of the document being generated, and `refFields` is the same object every time that candidate is offered. Previously each call got a freshly built copy, so a `where` that wrote to one of them saw its change disappear; now the write would be visible to later calls. Reading them — which is all a filter should do — is unaffected.
 
 # chaca@2.3.0
 

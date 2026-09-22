@@ -25,6 +25,8 @@ export class RefValueNode extends InputTreeNode {
   private refFieldTreeRoute: RefRoute;
   private schemaRefIndex: number | null = null;
   private allRefNodes: SearchedRefValue[] | null = null;
+  private allAcceptedNodes: SingleResultNode[] | null = null;
+  private readonly refFieldsCache = new WeakMap<DocumentTree, unknown>();
   private noMoreValues = false;
 
   constructor(
@@ -124,49 +126,115 @@ export class RefValueNode extends InputTreeNode {
       this.allRefNodes = allRefValues;
     }
 
+    const where = this.refField.where;
+
+    if (!where) {
+      return this.acceptedWithoutWhere(
+        allRefValues,
+        currentDocument,
+        refItSelf,
+      );
+    }
+
+    const caller = this.getFieldRoute();
     const currentSchemaResolver = this.schemasStore.get(
       currentSchemaResolverIndex,
     );
 
+    // invariante del bucle: el documento que referencia no cambia mientras se
+    // recorren sus candidatos
+    const currentFields = currentDocument.getDocumentObject();
+
     const returnRefValues: SingleResultNode[] = [];
 
     for (const refNode of allRefValues) {
-      if (currentDocument !== refNode.document) {
-        if (this.refField.where) {
-          let isAccepted: boolean;
+      if (currentDocument === refNode.document) {
+        continue;
+      }
 
-          try {
-            isAccepted = await this.refField.where({
-              store: new DatasetStore({
-                schemasStore: this.schemasStore,
-                omitCurrentDocument: refNode.document,
-                omitResolver: currentSchemaResolver,
-                caller: this.getFieldRoute(),
-              }),
-              refFields: refNode.document.getDocumentObject(),
-              currentFields: currentDocument.getDocumentObject(),
-            });
-          } catch (error) {
-            if (error instanceof ChacaError) {
-              throw error;
-            }
+      const refDocument = refNode.document;
 
-            throw new RefWhereFunctionError(this.getRefFieldRoute().string(), {
-              route: this.getRouteString(),
-              error: error,
-            });
-          }
+      let isAccepted: boolean;
 
-          if (isAccepted) {
-            returnRefValues.push(refNode.resultNode);
-          }
-        } else {
-          returnRefValues.push(refNode.resultNode);
+      try {
+        isAccepted = await where({
+          refFields: this.refFieldsOf(refDocument, refItSelf),
+          currentFields: currentFields,
+          store: new DatasetStore({
+            schemasStore: this.schemasStore,
+            omitCurrentDocument: refDocument,
+            omitResolver: currentSchemaResolver,
+            caller: caller,
+          }),
+        });
+      } catch (error) {
+        if (error instanceof ChacaError) {
+          throw error;
         }
+
+        throw new RefWhereFunctionError(this.getRefFieldRoute().string(), {
+          route: this.getRouteString(),
+          error: error,
+        });
+      }
+
+      if (isAccepted) {
+        returnRefValues.push(refNode.resultNode);
       }
     }
 
     return returnRefValues;
+  }
+
+  /**
+   * Sin `where` el único criterio es que el candidato no sea el propio
+   * documento, y eso sólo puede pasar cuando el schema se referencia a sí
+   * mismo. Referenciando otro schema la lista es siempre la misma, así que se
+   * construye una vez en vez de por documento.
+   */
+  private acceptedWithoutWhere(
+    allRefValues: SearchedRefValue[],
+    currentDocument: DocumentTree,
+    refItSelf: boolean,
+  ): SingleResultNode[] {
+    if (refItSelf) {
+      const nodes: SingleResultNode[] = [];
+
+      for (const refNode of allRefValues) {
+        if (currentDocument !== refNode.document) {
+          nodes.push(refNode.resultNode);
+        }
+      }
+
+      return nodes;
+    }
+
+    if (!this.allAcceptedNodes) {
+      this.allAcceptedNodes = allRefValues.map((n) => n.resultNode);
+    }
+
+    return this.allAcceptedNodes;
+  }
+
+  /**
+   * El schema referenciado termina de construirse antes de recorrer sus
+   * candidatos, así que sus documentos ya no cambian y su objeto se reutiliza
+   * entre todos los documentos que lo referencian. En un ref a sí mismo todavía
+   * se están añadiendo documentos, así que ahí se reconstruye.
+   */
+  private refFieldsOf(document: DocumentTree, refItSelf: boolean): unknown {
+    if (refItSelf) {
+      return document.getDocumentObject();
+    }
+
+    let fields = this.refFieldsCache.get(document);
+
+    if (!fields) {
+      fields = document.getDocumentObject();
+      this.refFieldsCache.set(document, fields);
+    }
+
+    return fields;
   }
 
   private async value(
