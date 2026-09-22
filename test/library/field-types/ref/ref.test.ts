@@ -349,4 +349,230 @@ describe("Ref field", () => {
       expect(arrays).toBeGreaterThan(0);
     });
   });
+
+  describe("where", () => {
+    it("only the candidates accepted by where should be referenced", async () => {
+      const schema = chaca.schema({ id: chaca.key(chaca.sequence()) });
+
+      const schema2 = chaca.schema({
+        ref: chaca.ref("schema.id", {
+          where: ({ refFields }: { refFields: { id: number } }) => {
+            return refFields.id % 2 === 0;
+          },
+        }),
+      });
+
+      const data = await chaca
+        .dataset([
+          { name: "schema", documents: 20, schema: schema },
+          { name: "schema2", documents: 30, schema: schema2 },
+        ])
+        .generate();
+
+      for (const s2 of data.schema2) {
+        expect(s2.ref % 2).toBe(0);
+      }
+    });
+
+    it("refFields should be the whole referenced document, not only the referenced key", async () => {
+      const schema = chaca.schema({
+        id: chaca.key(chaca.sequence()),
+        name: () => modules.person.firstName(),
+        object: chaca.schema({ nested: () => "nested" }),
+      });
+
+      const seen: Array<Record<string, unknown>> = [];
+
+      const schema2 = chaca.schema({
+        ref: chaca.ref("schema.id", {
+          where: ({ refFields }: { refFields: Record<string, unknown> }) => {
+            seen.push(refFields);
+            return true;
+          },
+        }),
+      });
+
+      const data = await chaca
+        .dataset([
+          { name: "schema", documents: 5, schema: schema },
+          { name: "schema2", documents: 3, schema: schema2 },
+        ])
+        .generate();
+
+      // 3 documents x 5 candidates
+      expect(seen).toHaveLength(15);
+
+      for (const received of seen) {
+        expect(data.schema).toContainEqual(received);
+      }
+    });
+
+    it("currentFields should carry the fields already resolved in the current document", async () => {
+      const schema = chaca.schema({ id: chaca.key(chaca.sequence()) });
+
+      const schema2 = chaca.schema({
+        before: chaca.sequence({ startsWith: 100 }),
+        ref: chaca.ref("schema.id", {
+          where: ({
+            currentFields,
+          }: {
+            currentFields: { before: number; after?: unknown };
+          }) => {
+            // the ref is resolved in declaration order, so `before` is already
+            // there and `after` is not
+            expect(currentFields.before).toBeGreaterThanOrEqual(100);
+            expect("after" in currentFields).toBe(false);
+
+            return true;
+          },
+        }),
+        after: () => "after",
+      });
+
+      const data = await chaca
+        .dataset([
+          { name: "schema", documents: 4, schema: schema },
+          { name: "schema2", documents: 4, schema: schema2 },
+        ])
+        .generate();
+
+      expect(data.schema2).toHaveLength(4);
+    });
+
+    it("the store should be usable from inside where", async () => {
+      const schema = chaca.schema({ id: chaca.key(chaca.sequence()) });
+
+      const schema2 = chaca.schema({
+        ref: chaca.ref("schema.id", {
+          where: async ({
+            refFields,
+            store,
+          }: {
+            refFields: { id: number };
+            store: { get: (route: string) => Promise<unknown[]> };
+          }) => {
+            const ids = (await store.get("schema.id")) as number[];
+
+            expect(ids).include(refFields.id);
+
+            // only the largest id of the referenced schema is accepted
+            return refFields.id === Math.max(...ids);
+          },
+        }),
+      });
+
+      const data = await chaca
+        .dataset([
+          { name: "schema", documents: 6, schema: schema },
+          { name: "schema2", documents: 5, schema: schema2 },
+        ])
+        .generate();
+
+      // only the largest id passes the filter
+      for (const s2 of data.schema2) {
+        expect(s2.ref).toBe(6);
+      }
+    });
+
+    it("where combined with unique. every document should take a different accepted value", async () => {
+      const schema = chaca.schema({ id: chaca.key(chaca.sequence()) });
+
+      const schema2 = chaca.schema({
+        ref: chaca.ref("schema.id", {
+          unique: true,
+          where: ({ refFields }: { refFields: { id: number } }) => {
+            return refFields.id > 5;
+          },
+        }),
+      });
+
+      const data = await chaca
+        .dataset([
+          { name: "schema", documents: 10, schema: schema },
+          { name: "schema2", documents: 5, schema: schema2 },
+        ])
+        .generate();
+
+      const refs = data.schema2.map((s: { ref: number }) => s.ref);
+
+      expect(new Set(refs).size).toBe(5);
+
+      for (const r of refs) {
+        expect(r).toBeGreaterThan(5);
+      }
+    });
+
+    it("where rejects every candidate. should throw NotEnoughValuesForRefError", async () => {
+      const schema = chaca.schema({ id: chaca.key(chaca.sequence()) });
+
+      const schema2 = chaca.schema({
+        ref: chaca.ref("schema.id", { where: () => false }),
+      });
+
+      const dataset = chaca.dataset([
+        { name: "schema", documents: 5, schema: schema },
+        { name: "schema2", documents: 5, schema: schema2 },
+      ]);
+
+      await expect(dataset.generate()).rejects.toThrow(
+        NotEnoughValuesForRefError,
+      );
+    });
+
+    it("where rejects every candidate with nullOnEmpty. should return null", async () => {
+      const schema = chaca.schema({ id: chaca.key(chaca.sequence()) });
+
+      const schema2 = chaca.schema({
+        ref: chaca.ref("schema.id", {
+          nullOnEmpty: true,
+          where: () => false,
+        }),
+      });
+
+      const data = await chaca
+        .dataset([
+          { name: "schema", documents: 5, schema: schema },
+          { name: "schema2", documents: 5, schema: schema2 },
+        ])
+        .generate();
+
+      for (const s2 of data.schema2) {
+        expect(s2.ref).toBeNull();
+      }
+    });
+
+    it("where on a schema that refs itself. should never reference its own document", async () => {
+      const schema = chaca.schema({
+        id: chaca.key(chaca.sequence()),
+        ref: chaca.ref("schema.id", {
+          where: ({
+            currentFields,
+            refFields,
+          }: {
+            currentFields: { id: number };
+            refFields: { id: number; ref: number | null };
+          }) => {
+            expect(refFields.id).not.toBe(currentFields.id);
+
+            // a candidate of a self-ref is an already finished document, so
+            // it carries the ref field too, not only the key
+            expect("ref" in refFields).toBe(true);
+
+            return refFields.id < currentFields.id;
+          },
+        }),
+      });
+
+      const data = await chaca
+        .dataset([{ name: "schema", documents: 10, schema: schema }])
+        .generate();
+
+      // the first document has no earlier document to point at
+      expect(data.schema[0].ref).toBeNull();
+
+      for (const s of data.schema.slice(1)) {
+        expect(s.ref).toBeLessThan(s.id);
+      }
+    });
+  });
 });
