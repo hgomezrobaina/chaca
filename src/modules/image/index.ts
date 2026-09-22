@@ -12,11 +12,39 @@ interface CategoryProps {
   category?: string;
 }
 
+const IMAGE_HOST = "https://loremflickr.com";
+const AVATAR_HOST = "https://api.dicebear.com/9.x/adventurer/svg";
+
+/** Used when a provided category has no usable characters (e.g. `"!!!"`) */
+const FALLBACK_TAG = "nature";
+
 export class ImageModule {
   constructor(
     private readonly datatypeModule: DatatypeModule,
     private readonly wordModule: WordModule,
   ) {}
+
+  /**
+   * Turns a free-form category into loremflickr tags.
+   *
+   * Whitespace separates tags (`"sports car"` -> `"sports,car"`) and characters
+   * that are not letters, digits or hyphens are dropped, because loremflickr
+   * rejects an encoded space in the path.
+   */
+  private tags(category: string): string {
+    const tags = category
+      .toLowerCase()
+      .split(/[\s,]+/)
+      .map((tag) => tag.replace(/[^\p{L}\p{N}-]/gu, ""))
+      .filter((tag) => tag.length > 0)
+      .map((tag) => encodeURIComponent(tag));
+
+    return tags.length > 0 ? tags.join(",") : FALLBACK_TAG;
+  }
+
+  private size(value: number | undefined, fallback: number): number {
+    return value === undefined ? fallback : Math.max(1, Math.trunc(value));
+  }
 
   private buildUrl(
     category: string = this.wordModule.noun({ language: "en" }),
@@ -24,14 +52,14 @@ export class ImageModule {
   ) {
     const size = this.datatypeModule.int({ min: 640, max: 4000 });
 
-    const width = iwidth ? iwidth : size;
-    const height = iheight ? iheight : size;
+    const width = this.size(iwidth, size);
+    const height = this.size(iheight, size);
 
-    const url = `https://lexica.art/api/v1/search?q=${encodeURIComponent(
-      category,
-    )}&width=${width}&height=${height}`;
+    // `lock` pins the result to one image, so the same seed keeps returning
+    // the same url instead of a different picture on every request.
+    const lock = this.datatypeModule.int({ min: 1, max: 100000 });
 
-    return url;
+    return `${IMAGE_HOST}/${width}/${height}/${this.tags(category)}?lock=${lock}`;
   }
 
   /**
@@ -328,8 +356,8 @@ export class ImageModule {
    * @returns string
    */
   animatedAvatar(): string {
-    const ran = this.datatypeModule.int({ min: 0, max: 1000 });
+    const seed = this.datatypeModule.int({ min: 0, max: 1000000 });
 
-    return `https://api.multiavatar.com/${ran}.svg`;
+    return `${AVATAR_HOST}?seed=${seed}`;
   }
 }

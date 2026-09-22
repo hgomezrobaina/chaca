@@ -21,27 +21,41 @@ type ImageMethod =
   | "sport"
   | "house";
 
-function expectLexicaUrl(value: string): URL {
-  const url = new URL(value);
-
-  expect(url.host).toBe("lexica.art");
-  expect(url.pathname).toBe("/api/v1/search");
-
-  return url;
+interface ParsedImageUrl {
+  url: URL;
+  width: number;
+  height: number;
+  tags: string;
 }
 
-function expectSizeInRange(url: URL, param: "width" | "height"): number {
-  const raw = url.searchParams.get(param);
+/**
+ * loremflickr urls carry the size and tags in the path (`/<width>/<height>/<tags>`),
+ * so the path is parsed instead of read from query params.
+ */
+function parseImageUrl(value: string): ParsedImageUrl {
+  const url = new URL(value);
 
-  expect(raw).not.toBeNull();
+  expect(url.protocol).toBe("https:");
+  expect(url.host).toBe("loremflickr.com");
 
-  const size = Number(raw);
+  const segments = url.pathname.slice(1).split("/");
 
+  expect(segments).toHaveLength(3);
+
+  const [rawWidth, rawHeight, tags] = segments;
+
+  return {
+    url: url,
+    width: Number(rawWidth),
+    height: Number(rawHeight),
+    tags: tags,
+  };
+}
+
+function expectSizeInRange(size: number): void {
   expect(Number.isInteger(size)).toBe(true);
   expect(size).toBeGreaterThanOrEqual(640);
   expect(size).toBeLessThanOrEqual(4000);
-
-  return size;
 }
 
 describe("image modules", () => {
@@ -65,50 +79,101 @@ describe("image modules", () => {
     ["sport", "sport"],
     ["house", "house"],
   ])(
-    "image.%s. Should return a lexica.art url with q = '%s' and sizes in [640, 4000]",
+    "image.%s. Should return a loremflickr url tagged '%s' with sizes in [640, 4000]",
     (method, category) => {
-      const value = modules.image[method]();
+      const { tags, width, height } = parseImageUrl(modules.image[method]());
 
-      const url = expectLexicaUrl(value);
-
-      expect(url.searchParams.get("q")).toBe(category);
-      expectSizeInRange(url, "width");
-      expectSizeInRange(url, "height");
+      expect(tags).toBe(category);
+      expectSizeInRange(width);
+      expectSizeInRange(height);
     },
   );
 
-  it("image.food with width = 800 and height = 600. Should preserve q and use the given sizes", () => {
-    const value = modules.image.food({ width: 800, height: 600 });
+  it("image.food with width = 800 and height = 600. Should keep the tag and use the given sizes", () => {
+    const { tags, width, height } = parseImageUrl(
+      modules.image.food({ width: 800, height: 600 }),
+    );
 
-    const url = expectLexicaUrl(value);
-
-    expect(url.searchParams.get("q")).toBe("food");
-    expect(url.searchParams.get("width")).toBe("800");
-    expect(url.searchParams.get("height")).toBe("600");
+    expect(tags).toBe("food");
+    expect(width).toBe(800);
+    expect(height).toBe(600);
   });
 
-  it("image.category with category = 'soccer'. Should return a url with q = 'soccer'", () => {
-    const value = modules.image.category({ category: "soccer" });
+  it("image.food. Should pin the image with a lock so the url is stable", () => {
+    const { url } = parseImageUrl(modules.image.food());
 
-    const url = expectLexicaUrl(value);
+    const lock = Number(url.searchParams.get("lock"));
 
-    expect(url.searchParams.get("q")).toBe("soccer");
+    expect(Number.isInteger(lock)).toBe(true);
+    expect(lock).toBeGreaterThanOrEqual(1);
   });
 
-  it("image.category with no arguments. Should return a url with a non-empty q", () => {
-    const value = modules.image.category();
+  it("image.category with category = 'soccer'. Should return a url tagged 'soccer'", () => {
+    const { tags } = parseImageUrl(
+      modules.image.category({ category: "soccer" }),
+    );
 
-    const url = expectLexicaUrl(value);
-
-    const q = url.searchParams.get("q");
-
-    expect(q).not.toBeNull();
-    expect(q).not.toBe("");
+    expect(tags).toBe("soccer");
   });
 
-  it("image.animatedAvatar. Should return a multiavatar svg url", () => {
-    const value = modules.image.animatedAvatar();
+  it("image.category with no arguments. Should return a url with a non-empty tag", () => {
+    const { tags } = parseImageUrl(modules.image.category());
 
-    expect(value).toMatch(/^https:\/\/api\.multiavatar\.com\/\d+\.svg$/);
+    expect(tags).not.toBe("");
+  });
+
+  it.each<[category: string, expected: string]>([
+    ["sports car", "sports,car"],
+    ["  Sports   Car  ", "sports,car"],
+    ["red,blue", "red,blue"],
+    ["3d", "3d"],
+  ])(
+    "image.category with category = '%s'. Should build the tags as '%s'",
+    (category, expected) => {
+      const { tags } = parseImageUrl(modules.image.category({ category }));
+
+      expect(tags).toBe(expected);
+    },
+  );
+
+  it("image.category with an accented category. Should percent-encode it", () => {
+    const { tags } = parseImageUrl(
+      modules.image.category({ category: "café" }),
+    );
+
+    expect(tags).toBe(encodeURIComponent("café"));
+  });
+
+  it("image.category with a category with no usable characters. Should fall back to a valid tag", () => {
+    const { tags } = parseImageUrl(modules.image.category({ category: "!!!" }));
+
+    expect(tags).toBe("nature");
+  });
+
+  it("image.food with a zero width. Should clamp the size so the url stays valid", () => {
+    const { width } = parseImageUrl(modules.image.food({ width: 0 }));
+
+    expect(width).toBe(1);
+  });
+
+  it("image.animatedAvatar. Should return a dicebear svg url with a seed", () => {
+    const url = new URL(modules.image.animatedAvatar());
+
+    expect(url.host).toBe("api.dicebear.com");
+    expect(url.pathname).toBe("/9.x/adventurer/svg");
+    expect(Number.isInteger(Number(url.searchParams.get("seed")))).toBe(true);
+  });
+
+  it("every image method. Should build a url with no whitespace left in the path", () => {
+    const values = [
+      modules.image.category({ category: "sports car" }),
+      modules.image.food(),
+      modules.image.animatedAvatar(),
+    ];
+
+    for (const value of values) {
+      expect(value).not.toMatch(/\s/);
+      expect(value).not.toContain("%20");
+    }
   });
 });

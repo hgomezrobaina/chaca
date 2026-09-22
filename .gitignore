@@ -34,3 +34,7 @@ claude-*.tmp
 .assistant-memory
 
 
+
+# benchmarks (el baseline sí se versiona)
+/bench/results
+/bench/history

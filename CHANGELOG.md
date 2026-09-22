@@ -1,3 +1,63 @@
+# chaca@2.3.0
+
+## 🌚 Features
+
+### Errors now say which field caused them
+
+- **When a `custom`, `isArray`, `possibleNull`, `pick.count`, `probability.chance` or `ref.where` function throws, the error now says which field failed, in which document, and while doing what** — instead of the bare error propagating with no way to tell where in the schema it came from. All of these extend the new `FieldGenerationError`:
+  - `ValueGenerationError` — a field's own value function (`custom`, `pick`, `probability`, ...) threw.
+  - `PossibleNullFunctionError` — a field's `possibleNull` function threw.
+  - `IsArrayFunctionError` — a field's `isArray` function threw.
+  - `RefWhereFunctionError` — a `ref`'s `where` function threw. Also names the field it references.
+  - `SchemaCountFunctionError` — a schema's `documents` function threw. Not a `FieldGenerationError`, since it isn't tied to a field or a document.
+
+  ```ts
+  import { chaca, Errors } from "chaca";
+
+  const schema = chaca.schema({
+    email: () => {
+      throw new Error("faker.internet.emial is not a function");
+    },
+  });
+
+  try {
+    await schema.object();
+  } catch (error) {
+    if (error instanceof Errors.FieldGenerationError) {
+      console.log(error.fieldRoute); // "Schema.email"
+      console.log(error.message); // "On field 'Schema.email' (document 0), while generating its value. faker.internet.emial is not a function"
+      console.log(error.originalError); // the original Error thrown by the function
+    }
+  }
+  ```
+
+  The original error is preserved untouched in `originalError` and as the standard `cause`. A `ChacaError` thrown by a field's function (for example one raised while reading another field through the `store`) is never wrapped: it already carries its own context and type, and rethrowing it as-is keeps the deepest, most useful error visible with `instanceof`.
+
+### `modules.vehicle.vin`
+
+- **New `modules.vehicle.vin()` method**, returning a 17-character Vehicle Identification Number ([ISO 3779](https://en.wikipedia.org/wiki/Vehicle_identification_number)). The check digit (position 9) is computed with the same algorithm real-world VIN validators use, so the result validates as genuinely correct, not just plausible-looking. It also starts with one of a curated list of real World Manufacturer Identifiers (exposed as `modules.vehicle.constants.wmi`) and encodes a model year at position 10.
+
+  ```ts
+  import { modules } from "chaca";
+
+  modules.vehicle.vin(); // '1HGBH41JXMN109186'
+  modules.vehicle.vin({ year: 2018 }); // 'WBA5A5C50JD123456'
+  ```
+
+## 🪛 Fix
+
+- **Every `modules.image` method returned a dead url.** The whole module pointed at `lexica.art`, whose API now answers `500` (and `403` from Cloudflare at the root), and `modules.image.animatedAvatar` pointed at `api.multiavatar.com`, which now answers `403`. All image methods now return urls that resolve to an actual image again.
+- The image urls were **never image urls in the first place**. `https://lexica.art/api/v1/search?q=...` is a _search_ endpoint that responds with JSON, so the value could never be used in an `<img src>` even while the service was up.
+- **`width` and `height` were ignored.** They were appended as query params to that search endpoint, which does not accept them, so the requested size had no effect whatsoever. Both are now part of the url and are honoured by the provider.
+- A `category` containing whitespace (`"sports car"`) produced a url that the image host rejects with `403`. Whitespace now separates tags, and a category left with no usable characters falls back to a valid tag instead of building a broken url.
+
+## ⚠️ Behavior changes
+
+- **A non-`ChacaError` thrown inside a field's function is no longer the error you catch.** It now arrives wrapped in a `FieldGenerationError` subclass (see above), with the original error moved to `.cause` / `.originalError`. Code that does `catch (error) { if (error.message === "...") }` on one of these should switch to checking `error.cause?.message` (or `error.originalError`), and `instanceof` checks for anything other than `Error`/`ChacaError` should check the `cause` chain instead.
+- Image urls are now served by **loremflickr** and have the shape `https://loremflickr.com/<width>/<height>/<tags>?lock=<n>` — the size lives in the path, not in query params, and the category is a path segment rather than a `q` query param. This matches the output the README has always documented. Update any snapshot or assertion that matched the previous `lexica.art` url.
+- `modules.image.animatedAvatar` now returns a **dicebear** url (`https://api.dicebear.com/9.x/adventurer/svg?seed=<n>`) instead of a multiavatar one. Its seed range also widened from 1,000 to 1,000,000 possible avatars, so large datasets no longer repeat the same handful of pictures.
+- A `width` or `height` of `0` or less is clamped to `1` instead of producing an invalid url.
+
 # chaca@2.2.0
 
 ## 🌚 Features
@@ -139,7 +199,7 @@
 
   This also applies to a schema that references **itself**: its first document used to get an array full of `null` (there are no other documents yet) and now gets an empty array. Single (non array) `ref` fields are unchanged — they still return `null` when empty, and still throw `NotEnoughValuesForRefError` when `nullOnEmpty` is `false`. Besides the output change, this avoids scanning the referenced schema once per remaining array position, which was noticeably slow for large `isArray` values.
 
-- **`possibleNull` no longer applies to the elements of an array field.** It describes the *field*, so it decides whether the field's value is a complete array or `null` — it is never re-evaluated for each element. Previously, a field combining `isArray` with a **float probability** (or a **function** returning one) rolled the dice again per element and could produce `null` values scattered inside the array:
+- **`possibleNull` no longer applies to the elements of an array field.** It describes the _field_, so it decides whether the field's value is a complete array or `null` — it is never re-evaluated for each element. Previously, a field combining `isArray` with a **float probability** (or a **function** returning one) rolled the dice again per element and could produce `null` values scattered inside the array:
 
   ```ts
   const schema = chaca.schema({

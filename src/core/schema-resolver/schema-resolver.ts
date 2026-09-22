@@ -1,4 +1,8 @@
-import { ChacaError, CyclicAccessDataError } from "../../errors";
+import {
+  ChacaError,
+  CyclicAccessDataError,
+  SchemaCountFunctionError,
+} from "../../errors";
 import { ChacaUtils } from "../utils";
 import { SchemaInput } from "../schema/interfaces/schema";
 import { ChacaInputTree } from "../input-tree/chaca-input-tree";
@@ -244,13 +248,24 @@ export class SchemaResolver<K = any> {
           const save = this.count.value();
 
           if (save === null) {
-            count = await this.countDocExecutor.value({
-              store: new DatasetStore({
-                caller: this.route,
-                omitResolver: this,
-                schemasStore: this.schemasStore,
-              }),
-            });
+            try {
+              count = await this.countDocExecutor.value({
+                store: new DatasetStore({
+                  caller: this.route,
+                  omitResolver: this,
+                  schemasStore: this.schemasStore,
+                }),
+              });
+            } catch (error) {
+              if (error instanceof ChacaError) {
+                throw error;
+              }
+
+              throw new SchemaCountFunctionError({
+                schemaName: this.name,
+                error: error,
+              });
+            }
 
             this.count.setValue(count);
           } else {

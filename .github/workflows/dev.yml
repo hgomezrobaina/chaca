@@ -15,22 +15,36 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      # Tiene que ir antes de setup-node: la caché de abajo necesita el binario
+      # de pnpm para saber dónde está el store.
+      - name: 🧰 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.3.4
 
       - name: Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           registry-url: "https://registry.npmjs.org"
-
-      - name: 🕹️ Ci
-        run: npm ci
+          cache: "pnpm"
 
       - name: 📦 Install packages
-        run: npm install
+        run: pnpm install --frozen-lockfile
 
       - name: 🪛 Build Chaca
-        run: npm run build
+        run: pnpm build
 
       - name: 🧪 Test
-        run: npm run test
+        run: pnpm test
+
+      # Sólo informa: nada falla por un número. El baseline versionado se midió
+      # en otra máquina, así que se corre con `--no-compare` y lo único que se
+      # busca de momento es cuánta varianza tiene el runner entre corridas.
+      # Cuando haya ese dato se decide el umbral (o se pasa a CodSpeed).
+      - name: 📈 Benchmarks
+        if: matrix.node-version == '22.x'
+        continue-on-error: true
+        run: pnpm bench:ci
