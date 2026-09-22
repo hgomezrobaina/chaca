@@ -1,8 +1,15 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { basename, dirname, join, resolve } from "node:path";
-import { append, type HistoryCase } from "./shared/history";
+import { append } from "./shared/history";
 import { TARGET } from "./shared/load";
 import { BAR_WIDTH, bar, color, ops, time } from "./shared/render";
+import {
+  casesOf,
+  indexReport as index,
+  readReport as read,
+  type Benchmark,
+  type Report,
+} from "./shared/report";
 
 /**
  * Dibuja en consola el JSON que deja `vitest bench --outputJson`.
@@ -26,29 +33,6 @@ import { BAR_WIDTH, bar, color, ops, time } from "./shared/render";
 const BENCH_DIR = resolve(__dirname);
 const DEFAULT_JSON = join(BENCH_DIR, "results", "last.json");
 const BASELINE = join(BENCH_DIR, "baseline.json");
-
-interface Benchmark {
-  name: string;
-  hz: number;
-  mean: number;
-  median: number;
-  rme: number;
-  sampleCount: number;
-}
-
-interface Group {
-  fullName: string;
-  benchmarks: Benchmark[];
-}
-
-interface BenchFile {
-  filepath: string;
-  groups: Group[];
-}
-
-interface Report {
-  files: BenchFile[];
-}
 
 /**
  * Suelo de ruido, en porcentaje: por debajo de esto un delta no se pinta.
@@ -86,29 +70,6 @@ function delta(now: Benchmark, before: Benchmark | undefined): string {
   }
 
   return change > 0 ? color.red(`▲ ${text}`) : color.green(`▼ ${text}`);
-}
-
-function read(file: string): Report | undefined {
-  if (!existsSync(file)) {
-    return undefined;
-  }
-
-  return JSON.parse(readFileSync(file, "utf-8")) as Report;
-}
-
-/** Índice plano `grupo::caso` para cruzar dos ejecuciones distintas. */
-function index(report: Report): Map<string, Benchmark> {
-  const map = new Map<string, Benchmark>();
-
-  for (const file of report.files) {
-    for (const group of file.groups) {
-      for (const benchmark of group.benchmarks) {
-        map.set(`${group.fullName}::${benchmark.name}`, benchmark);
-      }
-    }
-  }
-
-  return map;
 }
 
 function save(from: string): void {
@@ -228,21 +189,6 @@ function draw(
   }
 
   console.log("");
-}
-
-/** El registro compacto que se guarda en el histórico. */
-function casesOf(report: Report): Record<string, HistoryCase> {
-  const cases: Record<string, HistoryCase> = {};
-
-  for (const [key, benchmark] of index(report)) {
-    cases[key] = {
-      mean: benchmark.mean,
-      hz: benchmark.hz,
-      rme: benchmark.rme,
-    };
-  }
-
-  return cases;
 }
 
 function main(): void {
