@@ -22,7 +22,7 @@ Chaca is **isomorphic**: the same API runs in **Node.js and in the browser** (Re
 - 🌐 **Runs everywhere** — Node.js and the browser, ESM and CommonJS, with TypeScript types included.
 - 🧩 **Batteries included** — a large set of data `modules` (person, address, internet, finance, image, date, ...) ready to use.
 - 🔗 **Relational data** — model references between schemas with `Dataset` and `chaca.ref(...)`.
-- 📤 **Multi-format export** — serialize to `json`, `csv`, `yaml`, `postgresql`, `java`, `python`, `typescript` and `javascript`.
+- 📤 **Multi-format export** — serialize to `json`, `csv`, `yaml`, `postgresql`, `mysql`, `sqlite`, `java`, `python`, `typescript` and `javascript`.
 - 🧠 **Dynamic fields** — each field can depend on the other fields of the document or on the dataset state.
 - 🕹️ **CLI** included to generate data from a config file.
 
@@ -149,7 +149,7 @@ See the full list in the [modules documentation](https://chaca.app).
 
 Both `transform` and `export` support these `format` values:
 
-`json` · `csv` · `yaml` · `postgresql` · `java` · `python` · `typescript` · `javascript`
+`json` · `csv` · `yaml` · `postgresql` · `mysql` · `sqlite` · `java` · `python` · `typescript` · `javascript`
 
 ## 📘 Documentation
 
