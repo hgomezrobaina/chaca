@@ -4,7 +4,8 @@
 pnpm bench          # mide velocidad y dibuja, con delta contra el baseline
 pnpm bench:report   # vuelve a dibujar el último resultado, sin medir
 pnpm bench:save     # fija el último resultado como baseline
-pnpm bench:snapshot <nombre>   # congela una corrida con nombre, para comparar después
+pnpm bench:snapshot <nombre>          # congela una corrida con nombre, para comparar después
+pnpm bench:compare <antes> <después>  # compara dos snapshots
 
 pnpm bench:scaling  # cómo escala la generación (mitata: barras, caja y GC)
 pnpm bench:size     # memoria por documento, peso de cada formato y de los bundles
@@ -73,9 +74,26 @@ harness de benchmarks; no hay forma de medir un punto anterior a
 **Por qué el checkout y no comparar contra un snapshot viejo:** el ruido entre corridas (ver
 [Leer el delta](#leer-el-delta)) puede llegar al 10% en la misma máquina, el mismo minuto. Dos
 snapshots tomados en sesiones distintas, o en máquinas distintas, no son comparables aunque el
-JSON lo permita — por eso `bench:compare` (pendiente) exigirá que compartan `target` y
-`platform` antes de calcular ningún delta. Para un "antes/después" real, `--ref` mide las dos
-cosas seguidas, en el mismo proceso, en la misma máquina.
+JSON lo permita — por eso `bench:compare` se niega a comparar dos snapshots que no compartan
+`target` y `platform`. Para un "antes/después" real, `--ref` mide las dos cosas seguidas, en el
+mismo proceso, en la misma máquina.
+
+### Comparar dos snapshots
+
+```shell
+pnpm bench:compare v2.3.0 v2.3.1                              # dibuja en consola
+pnpm bench:compare v2.3.0 v2.3.1 --json bench/results/out.json  # y deja un JSON normalizado
+```
+
+Dibuja una barra por caso —dentro del grupo, según el tiempo del segundo snapshot— y el delta
+entre los dos, con el mismo suelo de ruido que `report.ts`. Un caso que sólo exista en uno de los
+dos snapshots (un benchmark nuevo, o uno que se quitó) se marca como tal en vez de compararse
+contra cero.
+
+El `--json` es el fichero pensado para que lo lea otra herramienta —hoy, la composición de
+Remotion que dibuja las imágenes del CHANGELOG o de un artículo—: trae la metadata de los dos
+snapshots (`name`, `version`, `commit`, `ref`) y, por caso, `before`/`after` con `mean`/`hz`/`rme`
+más el `changePercent` y si es `significant` o sólo ruido.
 
 ## El histórico
 

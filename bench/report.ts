@@ -1,5 +1,6 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { basename, dirname, join, resolve } from "node:path";
+import { compareMeasured as compare, deltaText as delta } from "./shared/delta";
 import { append } from "./shared/history";
 import { TARGET } from "./shared/load";
 import { BAR_WIDTH, bar, color, ops, time } from "./shared/render";
@@ -7,7 +8,6 @@ import {
   casesOf,
   indexReport as index,
   readReport as read,
-  type Benchmark,
   type Report,
 } from "./shared/report";
 
@@ -33,44 +33,6 @@ import {
 const BENCH_DIR = resolve(__dirname);
 const DEFAULT_JSON = join(BENCH_DIR, "results", "last.json");
 const BASELINE = join(BENCH_DIR, "baseline.json");
-
-/**
- * Suelo de ruido, en porcentaje: por debajo de esto un delta no se pinta.
- *
- * El 10% no es una corazonada. Dos corridas seguidas del **mismo** código en
- * este portátil dieron diferencias de hasta ±9.6%, porque el `rme` que calcula
- * tinybench mide la dispersión *dentro* de una corrida y no recoge la deriva
- * entre corridas (turbo, antivirus, lo que haya abierto). Una máquina más
- * tranquila —o una CI dedicada— admite bajarlo con `CHACA_BENCH_NOISE`.
- */
-const NOISE_FLOOR = Number(process.env.CHACA_BENCH_NOISE ?? 10);
-
-/** Cambio porcentual y el ruido por debajo del cual ese cambio no significa nada. */
-function compare(now: Benchmark, before: Benchmark) {
-  return {
-    change: ((now.mean - before.mean) / before.mean) * 100,
-    noise: Math.max(now.rme + before.rme, NOISE_FLOOR),
-  };
-}
-
-/**
- * El delta sólo se pinta cuando supera el ruido de las dos mediciones. Pintar
- * de rojo lo que es varianza de la máquina entrena a ignorar el color.
- */
-function delta(now: Benchmark, before: Benchmark | undefined): string {
-  if (!before) {
-    return color.dim("—");
-  }
-
-  const { change, noise } = compare(now, before);
-  const text = `${change >= 0 ? "+" : ""}${change.toFixed(1)}%`;
-
-  if (Math.abs(change) < noise) {
-    return color.dim(`≈ ${text}`);
-  }
-
-  return change > 0 ? color.red(`▲ ${text}`) : color.green(`▼ ${text}`);
-}
 
 function save(from: string): void {
   const report = read(from);

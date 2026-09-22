@@ -61,6 +61,7 @@
     "bench:report": "tsx bench/report.ts",
     "bench:save": "tsx bench/report.ts --save",
     "bench:snapshot": "tsx bench/snapshot.ts",
+    "bench:compare": "tsx bench/compare.ts",
     "bench:scaling": "tsx bench/scaling.ts",
     "bench:size": "tsx bench/size.ts",
     "bench:tests": "tsx bench/tests-report.ts",

@@ -54,6 +54,21 @@ export function indexReport(report: Report): Map<string, Benchmark> {
   return map;
 }
 
+export interface CaseKey {
+  /** El grupo, sin la ruta del fichero delante — `bench/x.bench.ts > grupo` → `grupo`. */
+  title: string;
+  /** El caso dentro del grupo. */
+  name: string;
+}
+
+/** Deshace la clave `grupo::caso` que arma `indexReport`/`casesOf`. */
+export function parseCaseKey(key: string): CaseKey {
+  const [fullName, name] = key.split("::");
+  const title = fullName.split(" > ").slice(1).join(" > ");
+
+  return { title, name };
+}
+
 /** El registro compacto que se guarda en el histórico y en los snapshots. */
 export function casesOf(report: Report): Record<string, HistoryCase> {
   const cases: Record<string, HistoryCase> = {};
