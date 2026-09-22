@@ -1,22 +1,17 @@
+import pc from "picocolors";
+
 /**
  * Lo que dibuja en consola: color, barras y formato de números. Vive aparte
  * porque lo comparten el report de `vitest bench`, el de peso y el de tests.
  */
 
-const useColor = Boolean(process.stdout.isTTY) && !process.env.NO_COLOR;
-
-function paint(code: string, text: string): string {
-  return useColor ? `\u001b[${code}m${text}\u001b[0m` : text;
-}
-
-export const color = {
-  bold: (t: string) => paint("1", t),
-  dim: (t: string) => paint("2", t),
-  red: (t: string) => paint("31", t),
-  green: (t: string) => paint("32", t),
-  yellow: (t: string) => paint("33", t),
-  cyan: (t: string) => paint("36", t),
-};
+/**
+ * El color lo pone picocolors y no un `\u001b[..m` escrito a mano. La versión
+ * propia era un `isTTY && !NO_COLOR`, que se deja fuera `FORCE_COLOR`, los
+ * terminales sin color, la CI y las rarezas de Windows. Además ya venía
+ * instalada como dependencia de vitest, así que declararla no añade peso.
+ */
+export const color = pc;
 
 export const BAR_WIDTH = 24;
 
