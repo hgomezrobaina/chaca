@@ -2,6 +2,10 @@
 
 ## ⚡ Performance
 
+![Relational dataset generation, chaca v2.3.0 vs v2.3.1: 570.9 µs → 345.1 µs with 35 documents (1.7x faster), 14.73 ms → 4.93 ms with 350 (3.0x) and 1.05 s → 166.89 ms with 3500 (6.3x)](https://raw.githubusercontent.com/Chacaponquin/chaca/main/assets/changelog/2.3.1-relational-dataset.png)
+
+_`bench/dataset.bench.ts`, four schemas with refs, filters and `store` lookups. Each block has its own scale._
+
 - **A `ref` walked and copied the whole list of candidates once per referencing document, even without a `where`.** With no filter the only rule is that a candidate cannot be the referencing document itself, which can only happen when a schema references itself. Pointing at another schema the answer is the same for every document, so it is now worked out once instead of rebuilt for each one. Generating 3500 documents with plain refs went from 54 ms to 27 ms here, and — more to the point — the cost is finally linear: 10x the documents costs about 10x, not 15x.
 
 - **A `ref` with a `where` rebuilt, on every candidate, things that do not change.** `currentFields` is the same object for all the candidates of one document and was being rebuilt for each of them; the referenced schema is already finished by the time its candidates are filtered, so `refFields` is now built once per candidate document and reused across the documents that reference it. The `where` itself still runs once per (document, candidate) pair — that part is inherent — but each run is much cheaper: the relational benchmark's filtered ref went from 175 ms to 125 ms at 3500 documents.
