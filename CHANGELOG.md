@@ -2,6 +2,10 @@
 
 ## ⚡ Performance
 
+- **Building a document's plain object was quadratic in its number of fields.** Every place that hands your functions a document — `currentFields` in `custom`, `isArray`, `possibleNull`, `pick.count` and `probability.chance`, `refFields`/`currentFields` in a `ref`'s `where`, the results of `store.get()` and `store.currentDocuments()`, and the dataset `generate()` returns — went through a loop that spread the object built so far into a brand new one for each field. A document with 20 fields allocated 20 objects of growing size instead of one, and a `ref` with a `where` paid that twice for every (document, candidate) pair.
+
+  Nothing about the result changes — still a fresh object on every call, same keys in the same order — but the relational dataset in the benchmarks is now **4x faster** at 3500 documents (1014 ms → 252 ms) and 2.3x at 350 (14.2 ms → 6.1 ms). The wider your documents, the bigger the difference.
+
 - **`modules.person.firstName()` no longer rebuilds the name list on every call.** Called without a `sex` it fell into a branch that spread `male` and `female` into a brand new array each time, so it was measurably _slower_ than `fullName()` despite doing less work — `fullName()` picks a random sex first and therefore got the language's list by reference. The joined list is now built once per language and reused, which makes `firstName()` about **16x faster** and puts it back ahead of `fullName()`.
 - **`modules.person.prefix()` built its list of prefixes on every call too**, even when given a `sex` and therefore about to ignore it. Same fix: the joined list is built once and reused, and it is no longer built at all when a `sex` is given. Roughly **5x faster** without a `sex` and **4x** with one.
 
