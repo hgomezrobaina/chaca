@@ -57,10 +57,16 @@ function runSuite(): void {
   }
 }
 
-/** `test/modules/person/person.test.ts` → `modules` */
-function folderOf(file: string): string {
+/** `…/test/modules/person/person.test.ts` → `modules/person/person.test.ts` */
+function routeOf(file: string): string {
   const normalized = file.split("\\").join("/");
-  const parts = normalized.slice(normalized.indexOf("/test/") + 6).split("/");
+
+  return normalized.slice(normalized.indexOf("/test/") + 6);
+}
+
+/** `…/test/modules/person/person.test.ts` → `modules` */
+function folderOf(file: string): string {
+  const parts = routeOf(file).split("/");
 
   return parts.length > 1 ? parts[0] : "(raíz)";
 }
@@ -103,7 +109,9 @@ function draw(report: TestReport): void {
 
   barTable(
     slowestFiles.map((file) => ({
-      name: folderOf(file.name) + "/" + (file.name.split(/[\\/]/).pop() ?? ""),
+      // La ruta entera, no sólo carpeta y nombre: hay tres `function.test.ts`
+      // distintos y verlos todos como `library/function.test.ts` engaña.
+      name: routeOf(file.name),
       value: file.ms,
       text: time(file.ms),
     })),
