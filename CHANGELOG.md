@@ -1,3 +1,10 @@
+# chaca@2.3.1
+
+## ⚡ Performance
+
+- **`modules.person.firstName()` no longer rebuilds the name list on every call.** Called without a `sex` it fell into a branch that spread `male` and `female` into a brand new array each time, so it was measurably _slower_ than `fullName()` despite doing less work — `fullName()` picks a random sex first and therefore got the language's list by reference. The joined list is now built once per language and reused, which makes `firstName()` about **16x faster** and puts it back ahead of `fullName()`.
+- **`modules.person.prefix()` built its list of prefixes on every call too**, even when given a `sex` and therefore about to ignore it. Same fix: the joined list is built once and reused, and it is no longer built at all when a `sex` is given. Roughly **5x faster** without a `sex` and **4x** with one.
+
 # chaca@2.3.0
 
 ## 🌚 Features
