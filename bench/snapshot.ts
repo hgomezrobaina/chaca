@@ -182,6 +182,7 @@ function main(): void {
 
   let report: Report;
   let commit: string;
+  let version: string;
   let dirty = false;
 
   if (ref) {
@@ -199,7 +200,10 @@ function main(): void {
     checkout(ref);
 
     try {
+      // el package.json y el commit medidos son los de `ref`, así que hay que
+      // leerlos aquí dentro y no después de volver al árbol original
       commit = git(["rev-parse", "--short", "HEAD"]);
+      version = packageVersion();
       report = measure(patterns);
     } finally {
       console.log(color.dim(` volviendo a ${original}...`));
@@ -208,6 +212,7 @@ function main(): void {
   } else {
     dirty = !isTreeClean();
     commit = git(["rev-parse", "--short", "HEAD"]);
+    version = packageVersion();
     report = measure(patterns);
   }
 
@@ -217,7 +222,7 @@ function main(): void {
     target: TARGET,
     node: process.version,
     platform: process.platform,
-    version: packageVersion(),
+    version,
     commit,
     ...(ref ? { ref } : {}),
     dirty,
