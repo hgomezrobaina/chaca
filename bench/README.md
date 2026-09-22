@@ -65,6 +65,20 @@ pnpm bench:snapshot solo-fase-1 --ref 515dfeb --bench bench/dataset.bench.ts
 Cada snapshot queda en `bench/snapshots/<nombre>.json`, versionado, con el commit, la
 versión de `package.json`, `target` y `platform` en los que se midió, además de las cifras.
 
+Los cuatro que hay hoy son la cadena del trabajo de rendimiento de 2.3.1, medidos de una
+sentada para que se puedan comparar entre sí:
+
+| snapshot | commit    | añade                                                          |
+| -------- | --------- | ------------------------------------------------------------- |
+| `v2.3.0` | `74df0bc` | el punto de partida                                            |
+| `fase-0` | `7c5fd7d` | las listas de `person` cacheadas                               |
+| `fase-1` | `515dfeb` | el objeto del documento construido de una pasada               |
+| `v2.3.1` | `047a4ff` | el `ref` que deja de rehacer lo que no cambia por documento    |
+
+Están para que cada cifra del CHANGELOG se pueda reimprimir en vez de creerse: el "3.8x" de
+la fase 1 es `bench:compare fase-0 fase-1` —y no `v2.3.0 fase-1`, que le colgaría también la
+mejora de `person`—, y el "6.1x" de la versión entera es `bench:compare v2.3.0 v2.3.1`.
+
 `--ref <commit-o-rama>` hace `git checkout`, mide, y vuelve a donde estabas —incluso si la
 medición falla a medio camino—. Exige un árbol de trabajo limpio: con cambios sin commitear el
 checkout se los llevaría al otro commit. Y sólo funciona en commits que ya traigan este propio

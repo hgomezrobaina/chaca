@@ -1,0 +1,193 @@
+{
+  "name": "fase-1",
+  "at": "2026-09-22T23:31:39.323Z",
+  "target": "src",
+  "node": "v24.21.0",
+  "platform": "win32",
+  "version": "2.3.1",
+  "commit": "515dfeb",
+  "ref": "515dfeb",
+  "dirty": false,
+  "cases": {
+    "bench/dataset.bench.ts > dataset · relacional::generate() ~35 docs": {
+      "mean": 0.3827142310635009,
+      "hz": 2612.915640009419,
+      "rme": 1.57371991542082
+    },
+    "bench/dataset.bench.ts > dataset · relacional::generate() ~350 docs": {
+      "mean": 5.855494186046528,
+      "hz": 170.77977848274034,
+      "rme": 4.515708500767715
+    },
+    "bench/dataset.bench.ts > dataset · relacional::generate() ~3500 docs": {
+      "mean": 260.1019299999999,
+      "hz": 3.844646596816872,
+      "rme": 3.344930798819264
+    },
+    "bench/export.bench.ts > export · 5000 documentos::json": {
+      "mean": 2.1313808510638297,
+      "hz": 469.17940522026976,
+      "rme": 2.1345867600251123
+    },
+    "bench/export.bench.ts > export · 5000 documentos::csv": {
+      "mean": 5.82671860465116,
+      "hz": 171.6231841369091,
+      "rme": 1.5994887608043198
+    },
+    "bench/export.bench.ts > export · 5000 documentos::yaml": {
+      "mean": 18.278249999999982,
+      "hz": 54.7098327246865,
+      "rme": 2.8149251779104003
+    },
+    "bench/export.bench.ts > export · 5000 documentos::typescript": {
+      "mean": 20.799091999999963,
+      "hz": 48.0790219111489,
+      "rme": 3.3800401104746682
+    },
+    "bench/export.bench.ts > export · 5000 documentos::javascript": {
+      "mean": 22.748813636363636,
+      "hz": 43.95833628886542,
+      "rme": 10.168764661431098
+    },
+    "bench/export.bench.ts > export · 5000 documentos::java": {
+      "mean": 15.664593750000066,
+      "hz": 63.83823391525847,
+      "rme": 2.2250071822586066
+    },
+    "bench/export.bench.ts > export · 5000 documentos::python": {
+      "mean": 23.593222727272693,
+      "hz": 42.38505318071895,
+      "rme": 2.5865552430324446
+    },
+    "bench/export.bench.ts > export · 5000 documentos::postgresql": {
+      "mean": 15.866681249999942,
+      "hz": 63.025152156504284,
+      "rme": 2.9329210132707506
+    },
+    "bench/export.bench.ts > export · 5000 documentos::mysql": {
+      "mean": 15.574224242424338,
+      "hz": 64.20865556025515,
+      "rme": 2.7156077165704193
+    },
+    "bench/export.bench.ts > export · 5000 documentos::sqlite": {
+      "mean": 15.466324242424228,
+      "hz": 64.65660387857339,
+      "rme": 3.089414224116398
+    },
+    "bench/generation.bench.ts > generation · schema simple::array(100)": {
+      "mean": 0.4794927133269398,
+      "hz": 2085.5374277985215,
+      "rme": 1.203304365883295
+    },
+    "bench/generation.bench.ts > generation · schema simple::array(1000)": {
+      "mean": 4.982837623762373,
+      "hz": 200.68885954283488,
+      "rme": 2.9098067181198854
+    },
+    "bench/generation.bench.ts > generation · schema simple::array(10000)": {
+      "mean": 50.95714,
+      "hz": 19.624335274703405,
+      "rme": 2.189410333854567
+    },
+    "bench/generation.bench.ts > generation · schema completo::array(100)": {
+      "mean": 1.6448098684210628,
+      "hz": 607.9730059985299,
+      "rme": 2.0712717016097693
+    },
+    "bench/generation.bench.ts > generation · schema completo::array(1000)": {
+      "mean": 17.88362142857139,
+      "hz": 55.91708614466481,
+      "rme": 21.519873183346416
+    },
+    "bench/generation.bench.ts > generation · schema completo::array(10000)": {
+      "mean": 156.89585000000005,
+      "hz": 6.373654879972922,
+      "rme": 3.7671191962826387
+    },
+    "bench/generation.bench.ts > generation · un documento::object() simple": {
+      "mean": 0.008395751754711635,
+      "hz": 119107.85707054847,
+      "rme": 0.7700716237189611
+    },
+    "bench/generation.bench.ts > generation · un documento::object() completo": {
+      "mean": 0.022790296262537146,
+      "hz": 43878.323848023305,
+      "rme": 1.5674631020895693
+    },
+    "bench/modules.bench.ts > modules · identificadores::id.uuid": {
+      "mean": 0.14114891335026816,
+      "hz": 7084.716249415605,
+      "rme": 0.8586319901056582
+    },
+    "bench/modules.bench.ts > modules · identificadores::id.cuid": {
+      "mean": 10.162994000000026,
+      "hz": 98.39620096203909,
+      "rme": 1.3457120253156798
+    },
+    "bench/modules.bench.ts > modules · identificadores::id.nanoid": {
+      "mean": 0.13892013888889285,
+      "hz": 7198.380364417801,
+      "rme": 0.8853849535104599
+    },
+    "bench/modules.bench.ts > modules · identificadores::id.ulid": {
+      "mean": 20.284592000000067,
+      "hz": 49.298502035436385,
+      "rme": 7.256162277295244
+    },
+    "bench/modules.bench.ts > modules · identificadores::id.mongodbId": {
+      "mean": 2.1604030172413706,
+      "hz": 462.8765984954534,
+      "rme": 2.102016189635471
+    },
+    "bench/modules.bench.ts > modules · texto::person.fullName": {
+      "mean": 0.16574691848906398,
+      "hz": 6033.294670669731,
+      "rme": 0.8673391103652374
+    },
+    "bench/modules.bench.ts > modules · texto::person.firstName": {
+      "mean": 0.02130208333333103,
+      "hz": 46943.765281178676,
+      "rme": 0.44899257373063634
+    },
+    "bench/modules.bench.ts > modules · texto::internet.email": {
+      "mean": 1.4219894886363447,
+      "hz": 703.2400787708896,
+      "rme": 1.6854603469303726
+    },
+    "bench/modules.bench.ts > modules · texto::word.noun": {
+      "mean": 0.017702503097892015,
+      "hz": 56489.18655571812,
+      "rme": 0.9985337179934288
+    },
+    "bench/modules.bench.ts > modules · texto::lorem.paragraph": {
+      "mean": 4.957442574257422,
+      "hz": 201.71691048782154,
+      "rme": 1.37359821053869
+    },
+    "bench/modules.bench.ts > modules · valores compuestos::image.film": {
+      "mean": 0.3390551186440594,
+      "hz": 2949.372963308074,
+      "rme": 3.260879968587131
+    },
+    "bench/modules.bench.ts > modules · valores compuestos::address.country": {
+      "mean": 0.557135300668129,
+      "hz": 1794.8961388746645,
+      "rme": 1.593617008869126
+    },
+    "bench/modules.bench.ts > modules · valores compuestos::date.past": {
+      "mean": 0.08734076855895413,
+      "hz": 11449.406920721223,
+      "rme": 0.5106757475069372
+    },
+    "bench/modules.bench.ts > modules · valores compuestos::finance.creditCard": {
+      "mean": 0.24451732552462735,
+      "hz": 4089.689750427447,
+      "rme": 0.7828634443056051
+    },
+    "bench/modules.bench.ts > modules · valores compuestos::datatype.int": {
+      "mean": 0.011833103774701979,
+      "hz": 84508.6816645606,
+      "rme": 0.4560125637117249
+    }
+  }
+}
