@@ -70,7 +70,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Chacaponquin/chaca.git"
+    "url": "git+https://github.com/hgomezrobaina/chaca.git"
   },
   "keywords": [
     "chaca",
@@ -130,7 +130,7 @@
     "yargs": "^17.7.2"
   },
   "bugs": {
-    "url": "https://github.com/Chacaponquin/chaca/issues"
+    "url": "https://github.com/hgomezrobaina/chaca/issues"
   },
   "homepage": "https://chaca.app",
   "browser": "./dist/browser/index.js",

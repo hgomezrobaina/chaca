@@ -8,7 +8,7 @@
   <a href="https://bundlephobia.com/package/chaca"><img src="https://img.shields.io/bundlephobia/minzip/chaca.svg" alt="minzipped size"></a>
   <img src="https://img.shields.io/npm/types/chaca.svg" alt="types included">
   <img src="https://img.shields.io/node/v/chaca.svg" alt="node version">
-  <a href="https://github.com/Chacaponquin/chaca/blob/main/LICENSE"><img src="https://img.shields.io/npm/l/chaca.svg" alt="license"></a>
+  <a href="https://github.com/hgomezrobaina/chaca/blob/main/LICENSE"><img src="https://img.shields.io/npm/l/chaca.svg" alt="license"></a>
 </p>
 
 ## 😀 Intro
@@ -165,11 +165,11 @@ If you don't want to use our npm package you can use our [REST API](https://chac
 
 ## 🗂️ Changelog
 
-Detailed changes for each release are documented in the [CHANGELOG.md](https://github.com/Chacaponquin/chaca/blob/main/CHANGELOG.md).
+Detailed changes for each release are documented in the [CHANGELOG.md](https://github.com/hgomezrobaina/chaca/blob/main/CHANGELOG.md).
 
 ## Contributing
 
-The Chaca project welcomes all constructive contributions. Contributions take many forms, from code for bug fixes and enhancements, to additions and fixes to documentation, additional tests, triaging incoming pull requests and issues, and more!. [See CONTRIBUTING.md](https://github.com/Chacaponquin/chaca/blob/main/CONTRIBUTING.md)
+The Chaca project welcomes all constructive contributions. Contributions take many forms, from code for bug fixes and enhancements, to additions and fixes to documentation, additional tests, triaging incoming pull requests and issues, and more!. [See CONTRIBUTING.md](https://github.com/hgomezrobaina/chaca/blob/main/CONTRIBUTING.md)
 
 ## License
 

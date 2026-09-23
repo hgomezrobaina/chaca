@@ -2,7 +2,7 @@
 
 ## ⚡ Performance
 
-![Relational dataset generation, chaca v2.3.0 vs v2.3.1: 487.5 µs → 344.4 µs with 35 documents (1.4x faster), 14.22 ms → 4.75 ms with 350 (3.0x) and 1.02 s → 167.23 ms with 3500 (6.1x)](https://raw.githubusercontent.com/Chacaponquin/chaca/main/assets/changelog/2.3.1-relational-dataset.png)
+![Relational dataset generation, chaca v2.3.0 vs v2.3.1: 487.5 µs → 344.4 µs with 35 documents (1.4x faster), 14.22 ms → 4.75 ms with 350 (3.0x) and 1.02 s → 167.23 ms with 3500 (6.1x)](https://raw.githubusercontent.com/hgomezrobaina/chaca/main/assets/changelog/2.3.1-relational-dataset.png)
 
 _`bench/dataset.bench.ts` — four schemas with refs, filters and `store` lookups; each block has its own scale. Measured into `bench/snapshots/`, reprintable with `npm run bench:compare v2.3.0 v2.3.1`._
 
