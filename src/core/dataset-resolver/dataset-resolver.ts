@@ -86,13 +86,13 @@ export class DatasetResolver<K = any> {
   }
 
   async resolve(): Promise<K> {
-    let data = {} as K;
+    const data: Record<string, unknown> = {};
 
     for (const r of this.resolvers) {
-      data = { ...data, [r.getSchemaName()]: await r.resolve() };
+      data[r.getSchemaName()] = await r.resolve();
     }
 
-    return data;
+    return data as K;
   }
 
   getRefsNodes() {

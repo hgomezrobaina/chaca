@@ -1,8 +1,15 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { basename, dirname, join, resolve } from "node:path";
-import { append, type HistoryCase } from "./shared/history";
+import { compareMeasured as compare, deltaText as delta } from "./shared/delta";
+import { append } from "./shared/history";
 import { TARGET } from "./shared/load";
 import { BAR_WIDTH, bar, color, ops, time } from "./shared/render";
+import {
+  casesOf,
+  indexReport as index,
+  readReport as read,
+  type Report,
+} from "./shared/report";
 
 /**
  * Dibuja en consola el JSON que deja `vitest bench --outputJson`.
@@ -26,90 +33,6 @@ import { BAR_WIDTH, bar, color, ops, time } from "./shared/render";
 const BENCH_DIR = resolve(__dirname);
 const DEFAULT_JSON = join(BENCH_DIR, "results", "last.json");
 const BASELINE = join(BENCH_DIR, "baseline.json");
-
-interface Benchmark {
-  name: string;
-  hz: number;
-  mean: number;
-  median: number;
-  rme: number;
-  sampleCount: number;
-}
-
-interface Group {
-  fullName: string;
-  benchmarks: Benchmark[];
-}
-
-interface BenchFile {
-  filepath: string;
-  groups: Group[];
-}
-
-interface Report {
-  files: BenchFile[];
-}
-
-/**
- * Suelo de ruido, en porcentaje: por debajo de esto un delta no se pinta.
- *
- * El 10% no es una corazonada. Dos corridas seguidas del **mismo** código en
- * este portátil dieron diferencias de hasta ±9.6%, porque el `rme` que calcula
- * tinybench mide la dispersión *dentro* de una corrida y no recoge la deriva
- * entre corridas (turbo, antivirus, lo que haya abierto). Una máquina más
- * tranquila —o una CI dedicada— admite bajarlo con `CHACA_BENCH_NOISE`.
- */
-const NOISE_FLOOR = Number(process.env.CHACA_BENCH_NOISE ?? 10);
-
-/** Cambio porcentual y el ruido por debajo del cual ese cambio no significa nada. */
-function compare(now: Benchmark, before: Benchmark) {
-  return {
-    change: ((now.mean - before.mean) / before.mean) * 100,
-    noise: Math.max(now.rme + before.rme, NOISE_FLOOR),
-  };
-}
-
-/**
- * El delta sólo se pinta cuando supera el ruido de las dos mediciones. Pintar
- * de rojo lo que es varianza de la máquina entrena a ignorar el color.
- */
-function delta(now: Benchmark, before: Benchmark | undefined): string {
-  if (!before) {
-    return color.dim("—");
-  }
-
-  const { change, noise } = compare(now, before);
-  const text = `${change >= 0 ? "+" : ""}${change.toFixed(1)}%`;
-
-  if (Math.abs(change) < noise) {
-    return color.dim(`≈ ${text}`);
-  }
-
-  return change > 0 ? color.red(`▲ ${text}`) : color.green(`▼ ${text}`);
-}
-
-function read(file: string): Report | undefined {
-  if (!existsSync(file)) {
-    return undefined;
-  }
-
-  return JSON.parse(readFileSync(file, "utf-8")) as Report;
-}
-
-/** Índice plano `grupo::caso` para cruzar dos ejecuciones distintas. */
-function index(report: Report): Map<string, Benchmark> {
-  const map = new Map<string, Benchmark>();
-
-  for (const file of report.files) {
-    for (const group of file.groups) {
-      for (const benchmark of group.benchmarks) {
-        map.set(`${group.fullName}::${benchmark.name}`, benchmark);
-      }
-    }
-  }
-
-  return map;
-}
 
 function save(from: string): void {
   const report = read(from);
@@ -228,21 +151,6 @@ function draw(
   }
 
   console.log("");
-}
-
-/** El registro compacto que se guarda en el histórico. */
-function casesOf(report: Report): Record<string, HistoryCase> {
-  const cases: Record<string, HistoryCase> = {};
-
-  for (const [key, benchmark] of index(report)) {
-    cases[key] = {
-      mean: benchmark.mean,
-      hz: benchmark.hz,
-      rme: benchmark.rme,
-    };
-  }
-
-  return cases;
 }
 
 function main(): void {

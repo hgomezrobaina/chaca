@@ -10,11 +10,11 @@ export class MixedFieldNode extends FieldNode {
   }
 
   value(): unknown {
-    let resultObject = {};
+    const resultObject: Record<string, unknown> = {};
 
-    this.nodes.forEach((n) => {
-      resultObject = { ...resultObject, [n.name]: n.value() };
-    });
+    for (const n of this.nodes) {
+      resultObject[n.name] = n.value();
+    }
 
     return resultObject;
   }

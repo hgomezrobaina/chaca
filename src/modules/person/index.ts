@@ -28,6 +28,10 @@ export type SexProps = {
 };
 
 export class PersonModule {
+  /** The `male` + `female` lists joined, built once instead of on every call. */
+  private readonly namesCache = new WeakMap<ILanguageNames, string[]>();
+  private prefixesCache?: string[];
+
   constructor(
     private readonly utils: ChacaUtils,
     private readonly datatypeModule: DatatypeModule,
@@ -162,24 +166,23 @@ export class PersonModule {
    * @example modules.person.prefix() // 'Ms.'
    * @returns string
    */
-  prefix({ sex: isex }: SexProps = {}) {
-    const sex = isex ? isex : undefined;
-    const all = [
-      ...this.constants.prefixes.male,
-      ...this.constants.prefixes.female,
-    ];
-
-    if (sex) {
-      if (sex === "male") {
-        return this.utils.oneOfArray(this.constants.prefixes.male);
-      } else if (sex === "female") {
-        return this.utils.oneOfArray(this.constants.prefixes.female);
-      } else {
-        return this.utils.oneOfArray(all);
-      }
-    } else {
-      return this.utils.oneOfArray(all);
+  prefix({ sex }: SexProps = {}): string {
+    if (sex === "male" || sex === "female") {
+      return this.utils.oneOfArray(this.constants.prefixes[sex]);
     }
+
+    return this.utils.oneOfArray(this.allPrefixes());
+  }
+
+  private allPrefixes(): string[] {
+    if (!this.prefixesCache) {
+      this.prefixesCache = [
+        ...this.constants.prefixes.male,
+        ...this.constants.prefixes.female,
+      ];
+    }
+
+    return this.prefixesCache;
   }
 
   private filterNameByLanguage(
@@ -195,8 +198,23 @@ export class PersonModule {
   private filterBySex(nameSel: ILanguageNames, sex: Sex | undefined): string[] {
     if (sex && typeof sex === "string") {
       const selSex = nameSel[sex];
-      if (selSex) return selSex;
-      else return [...nameSel.male, ...nameSel.female];
-    } else return [...nameSel.male, ...nameSel.female];
+
+      if (selSex) {
+        return selSex;
+      }
+    }
+
+    return this.allNames(nameSel);
+  }
+
+  private allNames(nameSel: ILanguageNames): string[] {
+    const cached = this.namesCache.get(nameSel);
+
+    if (cached) return cached;
+
+    const all = [...nameSel.male, ...nameSel.female];
+    this.namesCache.set(nameSel, all);
+
+    return all;
   }
 }

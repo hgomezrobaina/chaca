@@ -16,16 +16,13 @@ export class DocumentTree<D = any> {
   }
 
   getDocumentObject(): D {
-    let returnObject = {} as D;
+    const returnObject: Record<string, unknown> = {};
 
     for (const n of this.nodes) {
-      const nodeName = n.name;
-      const nodeValue = n.value();
-
-      returnObject = { ...returnObject, [nodeName]: nodeValue };
+      returnObject[n.name] = n.value();
     }
 
-    return returnObject;
+    return returnObject as D;
   }
 
   getNodeByNodeRoute(fieldTreeRoute: string[]): FieldNode {
