@@ -132,7 +132,7 @@
   "bugs": {
     "url": "https://github.com/hgomezrobaina/chaca/issues"
   },
-  "homepage": "https://chaca.app",
+  "homepage": "https://chaca.run",
   "browser": "./dist/browser/index.js",
   "sideEffects": false
 }

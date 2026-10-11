@@ -143,7 +143,7 @@ modules.image.film();
 modules.datatype.int({ min: 0, max: 100 });
 ```
 
-See the full list in the [modules documentation](https://chaca.app).
+See the full list in the [modules documentation](https://chaca.run).
 
 ## 📤 Export formats
 
@@ -153,15 +153,15 @@ Both `transform` and `export` support these `format` values:
 
 ## 📘 Documentation
 
-Visit our website to read the documentation. [Chaca Docs](https://chaca.app)
+Visit our website to read the documentation. [Chaca Docs](https://chaca.run)
 
 ## 🕹️ CLI
 
-See [CLI guide](https://chaca.app/docs/guides/cli)
+See [CLI guide](https://chaca.run/docs/guides/cli)
 
 ## 🌐 Try our REST API
 
-If you don't want to use our npm package you can use our [REST API](https://chaca.app/docs/rest-api/overview) to create your mock data
+If you don't want to use our npm package you can use our [REST API](https://chaca.run/docs/rest-api/overview) to create your mock data
 
 ## 🗂️ Changelog
 
