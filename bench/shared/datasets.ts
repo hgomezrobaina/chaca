@@ -1,4 +1,9 @@
-import { chaca, modules } from "./lib";
+import type { ChacaLib } from "./load";
+
+export interface RelationalDatasetProps {
+  chacaLib: ChacaLib;
+  scale: number;
+}
 
 /**
  * Un dataset relacional reducido: tres schemas, una referencia simple, una
@@ -8,8 +13,17 @@ import { chaca, modules } from "./lib";
  * No se reutilizan los `test/example-case/` a propósito: esas definiciones
  * importan `../../../../src` directamente, así que medirlas ignoraría
  * `CHACA_BENCH_TARGET` y `dist` mediría `src` sin avisar.
+ *
+ * Recibe `chacaLib` ya cargado en vez de importar el singleton de `./lib`
+ * (con su `await` de primer nivel): así lo puede llamar tanto un fichero
+ * `*.bench.ts` (vitest, ESM) como un script suelto ejecutado por tsx como
+ * CommonJS (`bench/competitors.ts`), que un `await` de primer nivel en este
+ * módulo rompería (`bench/shared/lib.ts:1-12` explica por qué). (Corrección
+ * 2026-11-04: descubierto al cablear `relational-dataset` en la comparativa.)
  */
-export function relationalDataset(scale: number) {
+export function relationalDataset({ chacaLib, scale }: RelationalDatasetProps) {
+  const { chaca, modules } = chacaLib;
+
   const USER = chaca.schema({
     id: chaca.key(() => modules.id.uuid()),
     name: () => modules.person.firstName(),
@@ -52,7 +66,7 @@ export function relationalDataset(scale: number) {
     },
   });
 
-  return chaca.dataset([
+  return chaca.dataset<Record<string, object[]>>([
     { documents: 10 * scale, name: "User", schema: USER },
     { documents: 5 * scale, name: "Product", schema: PRODUCT },
     {
