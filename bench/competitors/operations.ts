@@ -1,6 +1,14 @@
 import type { ChacaLib } from "../shared/load";
 import type { CompetitorLibs } from "./load";
 
+/** Las cuatro librerías que se comparan, compartido por `bench/competitors.ts` y `bench/uniqueness.ts`. */
+export enum Library {
+  Chaca = "chaca",
+  Faker = "faker",
+  Chance = "chance",
+  Falso = "falso",
+}
+
 /**
  * Lo que devuelve una operación medida. Es un tipo real y no `unknown`: cubre
  * todo lo que generan las cuatro librerías en esta lista — cadena, número,

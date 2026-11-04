@@ -67,6 +67,8 @@
     "bench:tests": "tsx bench/tests-report.ts",
     "bench:history": "tsx bench/history.ts",
     "bench:competitors": "tsx bench/competitors.ts",
+    "bench:uniqueness": "tsx bench/uniqueness.ts",
+    "bench:competitors:size": "tsx bench/competitors-size.ts",
     "bench:ci": "vitest bench --run && tsx bench/report.ts --no-compare --no-history"
   },
   "repository": {

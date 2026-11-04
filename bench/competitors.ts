@@ -14,6 +14,7 @@ import {
   buildOperations,
   buildRelationalDatasetCall,
   DOCUMENT_ARRAY_SIZES,
+  Library,
   type Operation,
   type OperationCall,
 } from "./competitors/operations";
@@ -39,13 +40,6 @@ import type { CompetitorsSnapshot } from "./competitors/snapshot";
  * Las cifras que se publican se miden con `CHACA_BENCH_TARGET=dist`: ver
  * `bench/shared/load.ts` y design.md § «Cómo se cargan los competidores».
  */
-
-enum Library {
-  Chaca = "chaca",
-  Faker = "faker",
-  Chance = "chance",
-  Falso = "falso",
-}
 
 function usage(): never {
   console.error(
