@@ -1,10 +1,9 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { setFlagsFromString } from "node:v8";
-import { runInNewContext } from "node:vm";
 import { gzipSync } from "node:zlib";
 import type { Extensions } from "../src/core/export/interfaces/export";
 import { loadChaca, TARGET } from "./shared/load";
+import { heapOf } from "./shared/memory";
 import { barTable, bytes, color, head } from "./shared/render";
 
 /**
@@ -29,43 +28,6 @@ const FORMATS: Extensions[] = [
   "mysql",
   "sqlite",
 ];
-
-/**
- * Sin recolector forzado, el delta de `heapUsed` mezcla la basura de la
- * medición anterior y da cifras que cambian según el orden de los casos. En vez
- * de exigir que se arranque node con `--expose-gc`, se enciende la bandera en
- * caliente: así el script funciona con un `tsx` pelado.
- */
-function forceGc(): () => void {
-  const existing = (globalThis as { gc?: () => void }).gc;
-
-  if (typeof existing === "function") {
-    return existing;
-  }
-
-  setFlagsFromString("--expose_gc");
-  const fn = runInNewContext("gc") as () => void;
-  setFlagsFromString("--no-expose_gc");
-
-  return fn;
-}
-
-const gc = forceGc();
-
-/** Heap que queda ocupado por los documentos, ya recogida la basura del camino. */
-async function heapOf(generate: () => Promise<unknown>): Promise<number> {
-  gc();
-  const before = process.memoryUsage().heapUsed;
-  const data = await generate();
-  gc();
-  const after = process.memoryUsage().heapUsed;
-
-  // El `void data` de más abajo evita que V8 libere los documentos antes de
-  // que se haya leído el heap.
-  void data;
-
-  return after - before;
-}
 
 async function main() {
   const { chaca, modules } = await loadChaca();
