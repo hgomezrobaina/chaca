@@ -151,6 +151,20 @@ Both `transform` and `export` support these `format` values:
 
 `json` · `csv` · `yaml` · `postgresql` · `mysql` · `sqlite` · `java` · `python` · `typescript` · `javascript`
 
+## ⚡ Benchmarks
+
+Measured on 2026-11-04 against `@faker-js/faker`, `chance` and `@ngneat/falso` (chaca 2.3.1) —
+speed on 17 single-value operations, catalog uniqueness, and output size. Chaca wins most of them
+(up to 8.3x faster generating a URL), and loses some too: every result, including the losses, is
+published on the same page.
+
+![Chaca vs faker, chance and falso generating a URL: chaca 395 ns, faker 2.6 µs, chance 3.3 µs, falso 518 ns — chaca up to 8.3x faster](https://raw.githubusercontent.com/hgomezrobaina/chaca/main/assets/readme/benchmarks.png)
+
+This is a benchmark run by the Chaca project itself, not an independent one. Full results, the
+method and the exact commands to reproduce it are on the
+[benchmarks page](https://chaca.run/docs/guides/benchmarks) — these figures are from chaca 2.3.1
+and will not stay current forever; the page is where they are kept up to date.
+
 ## 📘 Documentation
 
 Visit our website to read the documentation. [Chaca Docs](https://chaca.run)
