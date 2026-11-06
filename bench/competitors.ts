@@ -22,7 +22,7 @@ import { relativeMarginOfError } from "./competitors/rme";
 import type { CompetitorsSnapshot } from "./competitors/snapshot";
 
 /**
- * Chaca contra `@faker-js/faker`, `chance` y `@ngneat/falso`, en las 19
+ * Chaca contra `@faker-js/faker`, `chance` y `@ngneat/falso`, en las 17
  * operaciones de `bench/competitors/operations.ts`. No es un `*.bench.ts`:
  * ese glob lo recoge `vitest bench` y metería a tres librerías ajenas en el
  * baseline y el histórico de Chaca (`vitest.config.mts:10-12`). Se corre con
@@ -127,32 +127,18 @@ async function measureDocumentArray(
   const cases: Record<string, HistoryCase> = {};
 
   for (const size of DOCUMENT_ARRAY_SIZES) {
-    const perLibrary: [Library, HistoryCase][] = [
-      [
-        Library.Chaca,
-        await measureCall(() => {
-          return calls.chaca(size);
-        }),
-      ],
-      [
-        Library.Faker,
-        await measureCall(() => {
-          return calls.faker(size);
-        }),
-      ],
-      [
-        Library.Chance,
-        await measureCall(() => {
-          return calls.chance(size);
-        }),
-      ],
-      [
-        Library.Falso,
-        await measureCall(() => {
-          return calls.falso(size);
-        }),
-      ],
+    const callsByLibrary: [Library, OperationCall][] = [
+      [Library.Chaca, () => calls.chaca(size)],
+      [Library.Faker, () => calls.faker(size)],
+      [Library.Chance, () => calls.chance(size)],
+      [Library.Falso, () => calls.falso(size)],
     ];
+
+    const perLibrary: [Library, HistoryCase][] = [];
+
+    for (const [library, call] of callsByLibrary) {
+      perLibrary.push([library, await measureCall(call)]);
+    }
 
     head(`document-array · ${size} documentos`);
     barTable(toRows(perLibrary));

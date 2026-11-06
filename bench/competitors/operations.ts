@@ -42,7 +42,7 @@ export interface BuildOperationsProps {
 }
 
 /**
- * Las 19 operaciones comparadas, declaradas como dato — cada una dice su
+ * Las 17 operaciones comparadas, declaradas como dato — cada una dice su
  * método en las cuatro librerías, o `null` cuando una de ellas no tiene
  * equivalente. `test/bench/competitor-operations.test.ts` falla si alguna
  * fila se queda sin esa decisión, igual que `build-matrix.ts` del informe de

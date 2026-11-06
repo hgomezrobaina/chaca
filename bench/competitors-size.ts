@@ -1,6 +1,10 @@
 import type { Extensions } from "../src/core/export/interfaces/export";
 import { loadCompetitors } from "./competitors/load";
-import { buildDocumentArrayCalls, Library } from "./competitors/operations";
+import {
+  buildDocumentArrayCalls,
+  Library,
+  type OperationCall,
+} from "./competitors/operations";
 import { loadChaca, TARGET } from "./shared/load";
 import { heapOf } from "./shared/memory";
 import { barTable, bytes, color, head, type Row } from "./shared/render";
@@ -45,38 +49,25 @@ async function main(): Promise<void> {
 
   head(`memoria · ${DOCUMENTS} documentos`);
 
-  const heaps: Row[] = [
-    {
-      name: Library.Chaca,
-      value: await heapOf(() => {
-        return calls.chaca(DOCUMENTS);
-      }),
-    },
-    {
-      name: Library.Faker,
-      value: await heapOf(() => {
-        return calls.faker(DOCUMENTS);
-      }),
-    },
-    {
-      name: Library.Chance,
-      value: await heapOf(() => {
-        return calls.chance(DOCUMENTS);
-      }),
-    },
-    {
-      name: Library.Falso,
-      value: await heapOf(() => {
-        return calls.falso(DOCUMENTS);
-      }),
-    },
-  ].map((row) => {
-    return {
-      ...row,
-      text: bytes(row.value),
-      extra: [`${bytes(row.value / DOCUMENTS)}/doc`],
-    };
-  });
+  const callsByLibrary: [Library, OperationCall][] = [
+    [Library.Chaca, () => calls.chaca(DOCUMENTS)],
+    [Library.Faker, () => calls.faker(DOCUMENTS)],
+    [Library.Chance, () => calls.chance(DOCUMENTS)],
+    [Library.Falso, () => calls.falso(DOCUMENTS)],
+  ];
+
+  const heaps: Row[] = [];
+
+  for (const [library, call] of callsByLibrary) {
+    const value = await heapOf(call);
+
+    heaps.push({
+      name: library,
+      value,
+      text: bytes(value),
+      extra: [`${bytes(value / DOCUMENTS)}/doc`],
+    });
+  }
 
   barTable(heaps);
 
