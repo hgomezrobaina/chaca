@@ -59,7 +59,10 @@ export class FunctionNull extends PossibleNull {
   private readonly route: string;
   private readonly func: PossibleNullFunction;
 
-  constructor({ func, route }: FunctionNullProps) {
+  constructor(
+    private readonly utils: ChacaUtils,
+    { func, route }: FunctionNullProps,
+  ) {
     super();
 
     this.func = func;
@@ -78,7 +81,10 @@ export class FunctionNull extends PossibleNull {
 
     let type: PossibleNull;
     if (typeof result === "number") {
-      type = new ProbabilityNull({ value: result, route: this.route });
+      type = new ProbabilityNull(this.utils, {
+        value: result,
+        route: this.route,
+      });
     } else if (typeof result === "boolean") {
       type = new BooleanNull({ route: this.route, value: result });
     } else if (typeof result === "undefined") {
@@ -115,7 +121,10 @@ export class NotNull extends PossibleNull {
 export class ProbabilityNull extends PossibleNull {
   private value: number;
 
-  constructor({ value, route }: ProbabilityProps) {
+  constructor(
+    private readonly utils: ChacaUtils,
+    { value, route }: ProbabilityProps,
+  ) {
     super();
 
     this.value = value;
@@ -129,7 +138,7 @@ export class ProbabilityNull extends PossibleNull {
   }
 
   is(): Promise<boolean> {
-    return new Promise((resolve) => resolve(Math.random() <= this.value));
+    return new Promise((resolve) => resolve(this.utils.next() <= this.value));
   }
 
   can(): boolean {

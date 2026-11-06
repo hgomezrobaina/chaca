@@ -186,7 +186,7 @@ export class DatatypeModule {
       ]);
     }
 
-    const val = Math.floor(Math.random() * range + (min || 0));
+    const val = Math.floor(this.utils.next() * range + (min || 0));
 
     return val;
   }
@@ -232,7 +232,7 @@ export class DatatypeModule {
         ? precision
         : this.int({ min: 1, max: 10 });
 
-    const randomNum = Math.random() * range + (min || 0);
+    const randomNum = this.utils.next() * range + (min || 0);
     const factor = Math.pow(10, pres);
 
     const returnValue = Math.round(randomNum * factor) / factor;
