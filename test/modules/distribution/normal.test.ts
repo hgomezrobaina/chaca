@@ -59,15 +59,10 @@ describe("distribution.normal", () => {
         },
       };
 
-      const standard = new NormalAlgorithm(source).execute({
-        mean: 0,
-        standardDeviation: 1,
-      });
+      const algorithm = new NormalAlgorithm(source);
+      const standard = algorithm.execute({ mean: 0, standardDeviation: 1 });
       calls = 0;
-      const shifted = new NormalAlgorithm(source).execute({
-        mean: 50,
-        standardDeviation: 8,
-      });
+      const shifted = algorithm.execute({ mean: 50, standardDeviation: 8 });
 
       expect(shifted).toBeCloseTo(50 + 8 * standard, 12);
     });

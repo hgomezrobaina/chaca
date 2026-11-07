@@ -21,6 +21,11 @@ interface Option {
   chance: Chance;
 }
 
+interface PickByCumulativeWeightProps {
+  weights: number[];
+  sum: number;
+}
+
 export class ChancesArray {
   private readonly options: Option[] = [];
   private readonly route: string;
@@ -75,7 +80,7 @@ export class ChancesArray {
       );
     }
 
-    return this.pickByCumulativeWeight(weights, sum);
+    return this.pickByCumulativeWeight({ weights: weights, sum: sum });
   }
 
   /**
@@ -85,7 +90,10 @@ export class ChancesArray {
    * approach this replaced, which gave any option with `chance > 0` at
    * least `1 / size` of the pool no matter how small its real weight was.
    */
-  private pickByCumulativeWeight(weights: number[], sum: number): unknown {
+  private pickByCumulativeWeight({
+    weights,
+    sum,
+  }: PickByCumulativeWeightProps): unknown {
     const target = this.utils.next() * sum;
 
     let cumulative = 0;

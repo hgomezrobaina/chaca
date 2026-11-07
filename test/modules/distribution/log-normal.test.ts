@@ -9,7 +9,8 @@ describe("distribution.logNormal", () => {
       // Pair (0.6, 0.6) -> x = 0.2, y = 0.2, s = 0.08 < 1. Accepted on the first try.
       const source = { next: () => 0.6 };
 
-      const result = new LogNormalAlgorithm(source).execute({
+      const algorithm = new LogNormalAlgorithm(source);
+      const result = algorithm.execute({
         mean: 0,
         standardDeviation: 1,
       });
@@ -24,7 +25,8 @@ describe("distribution.logNormal", () => {
     it("the result is always positive, even for a negative mean", () => {
       const source = { next: () => 0.6 };
 
-      const result = new LogNormalAlgorithm(source).execute({
+      const algorithm = new LogNormalAlgorithm(source);
+      const result = algorithm.execute({
         mean: -10,
         standardDeviation: 1,
       });
