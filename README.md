@@ -141,6 +141,7 @@ modules.address.country();
 modules.finance.bitcoinAddress();
 modules.image.film();
 modules.datatype.int({ min: 0, max: 100 });
+modules.distribution.normal({ mean: 35, standardDeviation: 8 });
 ```
 
 See the full list in the [modules documentation](https://chaca.run).
