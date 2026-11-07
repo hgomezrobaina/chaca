@@ -1,6 +1,6 @@
 {
   "name": "chaca",
-  "version": "2.3.1",
+  "version": "2.4.0",
   "description": "Create and export mock data with your rules",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -66,6 +66,9 @@
     "bench:size": "tsx bench/size.ts",
     "bench:tests": "tsx bench/tests-report.ts",
     "bench:history": "tsx bench/history.ts",
+    "bench:competitors": "tsx bench/competitors.ts",
+    "bench:uniqueness": "tsx bench/uniqueness.ts",
+    "bench:competitors:size": "tsx bench/competitors-size.ts",
     "bench:ci": "vitest bench --run && tsx bench/report.ts --no-compare --no-history"
   },
   "repository": {
@@ -93,6 +96,9 @@
   "license": "MIT",
   "devDependencies": {
     "@eslint/js": "^9.39.5",
+    "@faker-js/faker": "^10.6.0",
+    "@ngneat/falso": "^8.0.2",
+    "@types/chance": "^1.1.8",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^26.1.1",
     "@types/shelljs": "^0.8.15",
@@ -101,6 +107,7 @@
     "@typescript-eslint/parser": "^8.64.0",
     "@vitest/coverage-istanbul": "^4.1.10",
     "@vitest/ui": "^4.1.10",
+    "chance": "^1.1.13",
     "eslint": "^9.39.5",
     "eslint-config-prettier": "^10.1.8",
     "eslint-import-resolver-typescript": "^4.4.5",
@@ -132,7 +139,7 @@
   "bugs": {
     "url": "https://github.com/hgomezrobaina/chaca/issues"
   },
-  "homepage": "https://chaca.app",
+  "homepage": "https://chaca.run",
   "browser": "./dist/browser/index.js",
   "sideEffects": false
 }

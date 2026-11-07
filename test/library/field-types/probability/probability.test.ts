@@ -182,4 +182,76 @@ describe("Probability field", () => {
     expect(result1).toBeGreaterThan(result2);
     expect(result2).toBeGreaterThan(result3);
   });
+
+  it("chances summing less than 1. are normalized by their own sum, not padded with a null option", async () => {
+    const schema = chaca.schema({
+      prob: chaca.probability([
+        { chance: 0.2, value: 10 },
+        { chance: 0.3, value: 5 },
+      ]),
+    });
+
+    const data = await schema.array(1000);
+
+    // every document got one of the two declared values: there is no
+    // "remaining probability" that falls through to null or undefined.
+    for (const doc of data) {
+      expect([10, 5]).toContain(doc.prob);
+    }
+
+    // the sum is 0.5, so the relative split is still 0.2 : 0.3 (2 : 3).
+    const ratio = count(data, 5) / count(data, 10);
+    expect(ratio).toBeGreaterThan(1);
+  });
+
+  it("chances summing more than 1. normalize to the same split as the equivalent chances summing less than 1", async () => {
+    // Each individual chance must stay within [0, 1] — only their sum can
+    // exceed it. 0.2 : 0.3 (sum 0.5) and 0.6 : 0.9 (sum 1.5) are the same
+    // 2 : 3 ratio.
+    const schema = chaca.schema({
+      prob: chaca.probability([
+        { chance: 0.6, value: 10 },
+        { chance: 0.9, value: 5 },
+      ]),
+    });
+
+    const data = await schema.array(1000);
+    const ratio = count(data, 5) / count(data, 10);
+
+    expect(ratio).toBeGreaterThan(1);
+  });
+
+  it("a single option with chance = 0. should throw an error, the same as when every option does", async () => {
+    const schema = chaca.schema({
+      prob: chaca.probability([{ chance: 0, value: 10 }]),
+    });
+
+    await expect(schema.object()).rejects.toThrow(
+      WrongProbabilityFieldDefinitionError,
+    );
+  });
+
+  it("chance function. is re-evaluated per document, not fixed once for the whole array", async () => {
+    const schema = chaca.schema({
+      seed: chaca.sequence({ startsWith: 0, step: 1 }),
+      prob: chaca.probability([
+        {
+          chance: ({ currentFields }: { currentFields: { seed: number } }) =>
+            currentFields.seed % 2 === 0 ? 1 : 0,
+          value: "even",
+        },
+        {
+          chance: ({ currentFields }: { currentFields: { seed: number } }) =>
+            currentFields.seed % 2 === 1 ? 1 : 0,
+          value: "odd",
+        },
+      ]),
+    });
+
+    const data = await schema.array(10);
+
+    for (const doc of data) {
+      expect(doc.prob).toBe(doc.seed % 2 === 0 ? "even" : "odd");
+    }
+  });
 });

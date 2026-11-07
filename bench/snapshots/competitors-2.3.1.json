@@ -1,0 +1,407 @@
+{
+  "name": "competitors-2.3.1",
+  "at": "2026-11-04T20:25:06.782Z",
+  "target": "dist",
+  "node": "v24.18.0",
+  "platform": "linux",
+  "version": "2.3.1",
+  "commit": "888d1d1",
+  "dirty": false,
+  "cases": {
+    "bench/competitors.ts > competitors · uuid::chaca": {
+      "mean": 0.0004994617875896518,
+      "hz": 2002155.1695193562,
+      "rme": 2.0199212556367625
+    },
+    "bench/competitors.ts > competitors · uuid::faker": {
+      "mean": 0.002883751165896046,
+      "hz": 346770.5576771835,
+      "rme": 2.2860529882659004
+    },
+    "bench/competitors.ts > competitors · uuid::chance": {
+      "mean": 0.00935578365627866,
+      "hz": 106885.75503014124,
+      "rme": 3.205268572966273
+    },
+    "bench/competitors.ts > competitors · uuid::falso": {
+      "mean": 0.005466136664059613,
+      "hz": 182944.56605432107,
+      "rme": 0.30792860864519594
+    },
+    "bench/competitors.ts > competitors · full-name::chaca": {
+      "mean": 0.0005599636664496528,
+      "hz": 1785830.1527674412,
+      "rme": 1.5260345079952888
+    },
+    "bench/competitors.ts > competitors · full-name::faker": {
+      "mean": 0.005931235042654644,
+      "hz": 168598.94993344083,
+      "rme": 0.5518395811652916
+    },
+    "bench/competitors.ts > competitors · full-name::chance": {
+      "mean": 0.001787415741711128,
+      "hz": 559466.93131542,
+      "rme": 1.25202003568458
+    },
+    "bench/competitors.ts > competitors · full-name::falso": {
+      "mean": 0.0005934466412811883,
+      "hz": 1685071.4629391215,
+      "rme": 1.036247979319108
+    },
+    "bench/competitors.ts > competitors · first-name::chaca": {
+      "mean": 0.00022135767875339674,
+      "hz": 4517575.381308768,
+      "rme": 0.6259324159793535
+    },
+    "bench/competitors.ts > competitors · first-name::faker": {
+      "mean": 0.0005308199273767605,
+      "hz": 1883878.031749605,
+      "rme": 2.3879087977013445
+    },
+    "bench/competitors.ts > competitors · first-name::chance": {
+      "mean": 0.0012719470972521552,
+      "hz": 786196.220078921,
+      "rme": 2.294559975847364
+    },
+    "bench/competitors.ts > competitors · first-name::falso": {
+      "mean": 0.00035402145661887763,
+      "hz": 2824687.5473329057,
+      "rme": 1.1402470250772874
+    },
+    "bench/competitors.ts > competitors · email::chaca": {
+      "mean": 0.0028880288235411354,
+      "hz": 346256.9320114532,
+      "rme": 1.4496925121709774
+    },
+    "bench/competitors.ts > competitors · email::faker": {
+      "mean": 0.005128568757266503,
+      "hz": 194986.17398531167,
+      "rme": 0.3489508310419243
+    },
+    "bench/competitors.ts > competitors · email::chance": {
+      "mean": 0.0030415144308338993,
+      "hz": 328783.5789507754,
+      "rme": 0.8866293082715236
+    },
+    "bench/competitors.ts > competitors · email::falso": {
+      "mean": 0.0012807637690991427,
+      "hz": 780784.1103308029,
+      "rme": 2.09495399543946
+    },
+    "bench/competitors.ts > competitors · url::chaca": {
+      "mean": 0.0003951020672686688,
+      "hz": 2530991.566085635,
+      "rme": 2.0825769020426375
+    },
+    "bench/competitors.ts > competitors · url::faker": {
+      "mean": 0.002557826438768997,
+      "hz": 390956.94095697487,
+      "rme": 0.4103054897974275
+    },
+    "bench/competitors.ts > competitors · url::chance": {
+      "mean": 0.0032911094374545786,
+      "hz": 303848.9053628747,
+      "rme": 1.1919779509775634
+    },
+    "bench/competitors.ts > competitors · url::falso": {
+      "mean": 0.0005182592539330051,
+      "hz": 1929536.2164999936,
+      "rme": 0.9664332202282924
+    },
+    "bench/competitors.ts > competitors · ip::chaca": {
+      "mean": 0.0009620007387631899,
+      "hz": 1039500.2412219187,
+      "rme": 6.3978134960060595
+    },
+    "bench/competitors.ts > competitors · ip::faker": {
+      "mean": 0.006568375168648941,
+      "hz": 152244.65325504413,
+      "rme": 0.6299315829462326
+    },
+    "bench/competitors.ts > competitors · ip::chance": {
+      "mean": 0.0009371606583505306,
+      "hz": 1067052.9018579067,
+      "rme": 1.8684094685309338
+    },
+    "bench/competitors.ts > competitors · ip::falso": {
+      "mean": 0.0021006076121610957,
+      "hz": 476052.7355088485,
+      "rme": 1.7616064457276532
+    },
+    "bench/competitors.ts > competitors · int-range::chaca": {
+      "mean": 0.00021915016709135856,
+      "hz": 4563081.16608975,
+      "rme": 1.2767345478001024
+    },
+    "bench/competitors.ts > competitors · int-range::faker": {
+      "mean": 0.00022696897204481175,
+      "hz": 4405888.571423606,
+      "rme": 0.6039968567228733
+    },
+    "bench/competitors.ts > competitors · int-range::chance": {
+      "mean": 0.0002746798764131228,
+      "hz": 3640601.6088924715,
+      "rme": 1.035145842625703
+    },
+    "bench/competitors.ts > competitors · int-range::falso": {
+      "mean": 0.00046061415895801383,
+      "hz": 2171014.4609148945,
+      "rme": 2.0105147122452
+    },
+    "bench/competitors.ts > competitors · float::chaca": {
+      "mean": 0.0003105975511200574,
+      "hz": 3219600.400562924,
+      "rme": 1.5078932725115388
+    },
+    "bench/competitors.ts > competitors · float::faker": {
+      "mean": 0.00023565204054916216,
+      "hz": 4243544.836996131,
+      "rme": 1.2750607896811015
+    },
+    "bench/competitors.ts > competitors · float::chance": {
+      "mean": 0.0011362802058293268,
+      "hz": 880064.6133496084,
+      "rme": 1.152096157430713
+    },
+    "bench/competitors.ts > competitors · float::falso": {
+      "mean": 0.0004466446590647978,
+      "hz": 2238916.2832347294,
+      "rme": 0.6376660690033967
+    },
+    "bench/competitors.ts > competitors · boolean::chaca": {
+      "mean": 0.0002130953404993444,
+      "hz": 4692735.175047511,
+      "rme": 1.1076558998181318
+    },
+    "bench/competitors.ts > competitors · boolean::faker": {
+      "mean": 0.0002307750751997447,
+      "hz": 4333223.590695232,
+      "rme": 0.9461916921741521
+    },
+    "bench/competitors.ts > competitors · boolean::chance": {
+      "mean": 0.00029215825400708055,
+      "hz": 3422802.4924319433,
+      "rme": 1.5891282069927162
+    },
+    "bench/competitors.ts > competitors · boolean::falso": {
+      "mean": 0.00025332083352196295,
+      "hz": 3947563.199192221,
+      "rme": 0.9481275453908807
+    },
+    "bench/competitors.ts > competitors · hexadecimal::chaca": {
+      "mean": 0.003412215155029297,
+      "hz": 293064.75546422985,
+      "rme": 0.8902871619307088
+    },
+    "bench/competitors.ts > competitors · hexadecimal::faker": {
+      "mean": 0.0008834408094618055,
+      "hz": 1131937.7475998676,
+      "rme": 2.443817594172627
+    },
+    "bench/competitors.ts > competitors · hexadecimal::chance": {
+      "mean": 0.0007420168861947409,
+      "hz": 1347678.2248558586,
+      "rme": 1.0354681609547545
+    },
+    "bench/competitors.ts > competitors · hexadecimal::falso": {
+      "mean": 0.0004065149373262719,
+      "hz": 2459934.2070360202,
+      "rme": 2.3251410947992723
+    },
+    "bench/competitors.ts > competitors · alphanumeric::chaca": {
+      "mean": 0.0017911914996865356,
+      "hz": 558287.5980457719,
+      "rme": 1.5288680665332612
+    },
+    "bench/competitors.ts > competitors · alphanumeric::faker": {
+      "mean": 0.0018480774238782052,
+      "hz": 541102.8710590989,
+      "rme": 1.5511185771821627
+    },
+    "bench/competitors.ts > competitors · alphanumeric::falso": {
+      "mean": 0.0004367376698369565,
+      "hz": 2289704.0238670534,
+      "rme": 1.4021291158717035
+    },
+    "bench/competitors.ts > competitors · word::chaca": {
+      "mean": 0.0008925111980382342,
+      "hz": 1120434.1213847282,
+      "rme": 0.38951677203129154
+    },
+    "bench/competitors.ts > competitors · word::faker": {
+      "mean": 0.00037907930092356313,
+      "hz": 2637970.4657143443,
+      "rme": 1.2737162678751
+    },
+    "bench/competitors.ts > competitors · word::chance": {
+      "mean": 0.0034544826293945313,
+      "hz": 289478.94874066004,
+      "rme": 2.9085959486313904
+    },
+    "bench/competitors.ts > competitors · word::falso": {
+      "mean": 0.0002699107415782364,
+      "hz": 3704928.5039667073,
+      "rme": 1.2661459547562035
+    },
+    "bench/competitors.ts > competitors · sentence::chaca": {
+      "mean": 0.002208670192307692,
+      "hz": 452761.12453673617,
+      "rme": 2.9538990950708275
+    },
+    "bench/competitors.ts > competitors · sentence::faker": {
+      "mean": 0.0029334169921875,
+      "hz": 340899.36843731266,
+      "rme": 0.9539121308469176
+    },
+    "bench/competitors.ts > competitors · sentence::chance": {
+      "mean": 0.04851172861735042,
+      "hz": 20613.57177947161,
+      "rme": 3.0924604020645488
+    },
+    "bench/competitors.ts > competitors · sentence::falso": {
+      "mean": 0.004279926513671875,
+      "hz": 233648.87149477494,
+      "rme": 0.9440905020462865
+    },
+    "bench/competitors.ts > competitors · country::chaca": {
+      "mean": 0.001273354721337034,
+      "hz": 785327.1231051714,
+      "rme": 4.878210224721654
+    },
+    "bench/competitors.ts > competitors · country::faker": {
+      "mean": 0.00035398161541974106,
+      "hz": 2825005.4704514225,
+      "rme": 1.3304844508548515
+    },
+    "bench/competitors.ts > competitors · country::chance": {
+      "mean": 0.0008035295104980469,
+      "hz": 1244509.3639189133,
+      "rme": 0.8377073795148846
+    },
+    "bench/competitors.ts > competitors · country::falso": {
+      "mean": 0.00028570739033442207,
+      "hz": 3500084.470441925,
+      "rme": 1.566627588232126
+    },
+    "bench/competitors.ts > competitors · zip-code::chaca": {
+      "mean": 0.0031566768174913196,
+      "hz": 316788.84403336607,
+      "rme": 2.27282480513046
+    },
+    "bench/competitors.ts > competitors · zip-code::faker": {
+      "mean": 0.0008976692976351984,
+      "hz": 1113995.9923263271,
+      "rme": 2.0281122628049175
+    },
+    "bench/competitors.ts > competitors · zip-code::chance": {
+      "mean": 0.0018097206910686727,
+      "hz": 552571.4575377275,
+      "rme": 6.765853850114886
+    },
+    "bench/competitors.ts > competitors · zip-code::falso": {
+      "mean": 0.0008901743430397727,
+      "hz": 1123375.4464155796,
+      "rme": 4.60760778061124
+    },
+    "bench/competitors.ts > competitors · city::faker": {
+      "mean": 0.0033738055687881096,
+      "hz": 296401.1943222934,
+      "rme": 1.5840673795105686
+    },
+    "bench/competitors.ts > competitors · city::chance": {
+      "mean": 0.004804342712402343,
+      "hz": 208145.0179269089,
+      "rme": 1.4681604406850401
+    },
+    "bench/competitors.ts > competitors · city::falso": {
+      "mean": 0.000276045690498559,
+      "hz": 3622588.7033190983,
+      "rme": 1.2282340638583777
+    },
+    "bench/competitors.ts > competitors · past-date::chaca": {
+      "mean": 0.000392610345870102,
+      "hz": 2547054.631950166,
+      "rme": 1.5005791613099835
+    },
+    "bench/competitors.ts > competitors · past-date::faker": {
+      "mean": 0.0010443271914200045,
+      "hz": 957554.3069411691,
+      "rme": 0.8205416203575869
+    },
+    "bench/competitors.ts > competitors · past-date::falso": {
+      "mean": 0.0013111813063063063,
+      "hz": 762671.0319849458,
+      "rme": 5.840156264331416
+    },
+    "bench/competitors.ts > competitors · document-array · 100::chaca": {
+      "mean": 1.0144705749185667,
+      "hz": 985.7358357390225,
+      "rme": 2.283756163877873
+    },
+    "bench/competitors.ts > competitors · document-array · 100::faker": {
+      "mean": 0.7941032566371681,
+      "hz": 1259.2820790519786,
+      "rme": 0.9615272365141566
+    },
+    "bench/competitors.ts > competitors · document-array · 100::chance": {
+      "mean": 1.204358773512476,
+      "hz": 830.3173622288067,
+      "rme": 5.1600027458894635
+    },
+    "bench/competitors.ts > competitors · document-array · 100::falso": {
+      "mean": 0.6541138060165975,
+      "hz": 1528.78595559658,
+      "rme": 2.218736077104495
+    },
+    "bench/competitors.ts > competitors · document-array · 1000::chaca": {
+      "mean": 9.972659525423728,
+      "hz": 100.2741542966204,
+      "rme": 5.106961055662185
+    },
+    "bench/competitors.ts > competitors · document-array · 1000::faker": {
+      "mean": 8.419808013888888,
+      "hz": 118.76755364854527,
+      "rme": 3.571908266843735
+    },
+    "bench/competitors.ts > competitors · document-array · 1000::chance": {
+      "mean": 12.583242822222221,
+      "hz": 79.47077030365995,
+      "rme": 6.188716737024102
+    },
+    "bench/competitors.ts > competitors · document-array · 1000::falso": {
+      "mean": 6.04910362244898,
+      "hz": 165.31374934442766,
+      "rme": 2.415925094525112
+    },
+    "bench/competitors.ts > competitors · document-array · 10000::chaca": {
+      "mean": 103.13899975,
+      "hz": 9.695653462064916,
+      "rme": 7.199677107886046
+    },
+    "bench/competitors.ts > competitors · document-array · 10000::faker": {
+      "mean": 83.56116933333332,
+      "hz": 11.967281070599986,
+      "rme": 5.584474920380187
+    },
+    "bench/competitors.ts > competitors · document-array · 10000::chance": {
+      "mean": 124.565699,
+      "hz": 8.027892172788272,
+      "rme": 3.42186561390614
+    },
+    "bench/competitors.ts > competitors · document-array · 10000::falso": {
+      "mean": 67.07316166666666,
+      "hz": 14.909092924077408,
+      "rme": 7.065934032848717
+    },
+    "bench/competitors.ts > competitors · relational-dataset::chaca": {
+      "mean": 0.9520594512195122,
+      "hz": 1050.3545747264836,
+      "rme": 2.306998703733036
+    }
+  },
+  "competitors": {
+    "faker": "10.6.0",
+    "chance": "1.1.13",
+    "falso": "8.0.2"
+  }
+}

@@ -172,8 +172,29 @@ export class Chaca {
   }
 
   /**
-   * Probability field
+   * Probability field. Picks one of the given options, with each one's odds
+   * proportional to its `chance`.
+   *
    * @param options Array of options to choose from. Where each one has the 'chance' parameter to indicate the probability of being chosen.
+   *
+   * The options do not need their `chance` to add up to `1`: each `chance`
+   * is a **relative weight**, not an absolute probability, and the one
+   * actually picked is `chance / sum(every chance)`. A set of chances that
+   * sums to less than `1` (e.g. `0.2` and `0.3`) splits in the same `2 : 3`
+   * proportion as one that sums to more than `1` (e.g. `0.6` and `0.9`) —
+   * there is no "remaining" probability that falls through to `null` or to
+   * a default option. Every individual `chance`, though, must still be a
+   * number between `0` and `1` (or a function that returns one); it is the
+   * sum across options that is unconstrained.
+   *
+   * An option with `chance: 0` can never be picked. If every option's
+   * `chance` evaluates to `0`, there is nothing to pick from, and
+   * generation throws `WrongProbabilityFieldDefinitionError`.
+   *
+   * `chance` as a function is called fresh for **every generated
+   * document** (not once for the whole array), with the same
+   * `currentFields`/`store` a `custom` field receives — so it can depend on
+   * another field already generated for that same document.
    *
    * @example
    * chaca.probability([

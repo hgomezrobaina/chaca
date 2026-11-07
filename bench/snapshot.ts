@@ -1,6 +1,7 @@
 import { spawnSync } from "node:child_process";
-import { mkdirSync, readFileSync, rmSync } from "node:fs";
+import { mkdirSync, rmSync } from "node:fs";
 import { dirname, resolve } from "node:path";
+import { git, isTreeClean, packageVersion } from "./shared/git";
 import { TARGET } from "./shared/load";
 import { color } from "./shared/render";
 import { casesOf, readReport, type Report } from "./shared/report";
@@ -63,22 +64,6 @@ function usage(): never {
   process.exit(1);
 }
 
-function git(args: string[]): string {
-  const result = spawnSync("git", args, { encoding: "utf-8" });
-
-  if (result.status !== 0) {
-    throw new Error(
-      `git ${args.join(" ")} falló: ${result.stderr || result.error?.message || "sin detalle"}`,
-    );
-  }
-
-  return result.stdout.trim();
-}
-
-function isTreeClean(): boolean {
-  return git(["status", "--porcelain"]) === "";
-}
-
 /** El nombre de la rama actual, o el sha si `HEAD` está desacoplado. */
 function currentRef(): string {
   const branch = spawnSync("git", ["symbolic-ref", "-q", "--short", "HEAD"], {
@@ -131,14 +116,6 @@ function measure(patterns: string[]): Report {
   }
 
   return report;
-}
-
-function packageVersion(): string {
-  const pkg = JSON.parse(
-    readFileSync(resolve(BENCH_DIR, "..", "package.json"), "utf-8"),
-  ) as { version: string };
-
-  return pkg.version;
 }
 
 function main(): void {

@@ -39,12 +39,15 @@ export class PossibleNullMapper {
           route: route,
         });
       } else {
-        result = new ProbabilityNull({ route: route, value: value });
+        result = new ProbabilityNull(this.utils, {
+          route: route,
+          value: value,
+        });
       }
     } else if (typeof value === "boolean") {
       result = new BooleanNull({ value: value, route: route });
     } else if (typeof value === "function") {
-      result = new FunctionNull({ route: route, func: value });
+      result = new FunctionNull(this.utils, { route: route, func: value });
     } else if (typeof value === "undefined") {
       result = new NotNull();
     } else {

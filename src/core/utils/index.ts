@@ -35,6 +35,21 @@ export class ChacaUtils {
   private readonly datatypeModule = new DatatypeModule(this);
 
   /**
+   * Returns a pseudo-random number in the interval `[0, 1)`.
+   *
+   * Every random value in chaca comes from here. It is the single point a future
+   * seed will replace, so no other place in the library may call `Math.random()`.
+   *
+   * @example
+   * chaca.utils.next() // 0.6137
+   *
+   * @returns number
+   */
+  next(): number {
+    return Math.random();
+  }
+
+  /**
    * Returns one element from an array
    *
    * @param list Array of values to return
@@ -44,7 +59,7 @@ export class ChacaUtils {
    * chaca.utils.oneOfArray([]) // undefined
    */
   oneOfArray<T>(list: ReadonlyArray<T>) {
-    return list[Math.floor(Math.random() * list.length)];
+    return list[Math.floor(this.next() * list.length)];
   }
 
   /**

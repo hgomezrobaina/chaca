@@ -1,1 +1,17 @@
-npm run fix && git add .
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Format and fix only the staged files, so unrelated work in progress is never
+# modified or added to the commit.
+staged=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '^src/.*\.ts$' || true)
+[ -z "$staged" ] && exit 0
+
+# Files that also have unstaged edits: fix them, but do not re-add them.
+partial=$(git diff --name-only || true)
+
+echo "$staged" | xargs npx eslint --fix || exit 1
+echo "$staged" | xargs npx prettier --write || exit 1
+
+for f in $staged; do
+  echo "$partial" | grep -qxF "$f" || git add -- "$f"
+done
