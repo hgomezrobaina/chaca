@@ -14,6 +14,7 @@ import { AnimalModule } from "./animal";
 import { ScienceModule } from "./science";
 import { WordModule } from "./word";
 import { ColorModule } from "./color";
+import { DistributionModule } from "./distribution";
 import { ChacaUtils } from "../core/utils";
 
 export class ChacaModules {
@@ -33,6 +34,7 @@ export class ChacaModules {
   readonly animal: AnimalModule;
   readonly science: ScienceModule;
   readonly color: ColorModule;
+  readonly distribution: DistributionModule;
 
   constructor(utils: ChacaUtils) {
     this.datatype = new DatatypeModule(utils);
@@ -56,5 +58,6 @@ export class ChacaModules {
     this.finance = new FinanceModule(utils, this.datatype);
     this.animal = new AnimalModule(utils);
     this.date = new DateModule(this.datatype, utils);
+    this.distribution = new DistributionModule(utils);
   }
 }
