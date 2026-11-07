@@ -7,6 +7,15 @@ jobs:
     name: 🔥 Publish
     runs-on: ubuntu-latest
 
+    # Trusted Publishing (OIDC): GitHub issues this job a short-lived identity
+    # token instead of a long-lived npm secret. id-token is the one npm's
+    # trusted-publisher flow actually needs; contents: read is the default
+    # checkout permission, kept explicit because granting id-token narrows
+    # the job's default permissions to only what's listed here.
+    permissions:
+      id-token: write
+      contents: read
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -34,9 +43,14 @@ jobs:
       - name: 🧪 Test
         run: pnpm test
 
-      # La publicación sigue siendo de npm: el .npmrc con el token lo escribe
-      # setup-node y `npm publish` lo lee tal cual.
+      # Trusted Publishing necesita npm >= 11.5.1; el npm que trae el runner
+      # de Node no siempre lo cumple, así que se fuerza el último antes de
+      # publicar. Ningún otro paso usa npm (los de arriba corren con pnpm).
+      - name: ⬆️ Update npm
+        run: npm install -g npm@latest
+
+      # Sin NODE_AUTH_TOKEN: npm se autentica por OIDC usando el permiso
+      # id-token del job, contra el Trusted Publisher configurado en
+      # npmjs.com para este repo y este archivo de workflow.
       - name: ✅ Publish
         run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
