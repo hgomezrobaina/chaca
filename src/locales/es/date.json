@@ -1,13 +1,34 @@
 {
-  "months": [],
-  "weekDays": [],
+  "months": [
+    "enero",
+    "febrero",
+    "marzo",
+    "abril",
+    "mayo",
+    "junio",
+    "julio",
+    "agosto",
+    "septiembre",
+    "octubre",
+    "noviembre",
+    "diciembre"
+  ],
+  "weekDays": [
+    "domingo",
+    "lunes",
+    "martes",
+    "miércoles",
+    "jueves",
+    "viernes",
+    "sábado"
+  ],
   "timeAgoUnits": {
-    "years": "years",
-    "seconds": "seconds",
-    "minutes": "minutes",
-    "days": "days",
-    "hours": "hours",
-    "months": "months"
+    "years": "años",
+    "seconds": "segundos",
+    "minutes": "minutos",
+    "days": "días",
+    "hours": "horas",
+    "months": "meses"
   },
-  "timeAgoTemplate": "{amount} {unit} ago"
+  "timeAgoTemplate": "hace {amount} {unit}"
 }

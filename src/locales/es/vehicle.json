@@ -1,1 +1,41 @@
-{ "types": [], "fuels": [], "bicycles": [] }
+{
+  "types": [
+    "Furgoneta de carga",
+    "Convertible",
+    "Cupé",
+    "Camioneta de cabina doble",
+    "Camioneta de cabina extendida",
+    "Hatchback",
+    "Minivan",
+    "Furgoneta de pasajeros",
+    "Todoterreno",
+    "Sedán",
+    "Camioneta familiar"
+  ],
+  "fuels": [
+    "Diésel",
+    "Eléctrico",
+    "Gasolina",
+    "Híbrido"
+  ],
+  "bicycles": [
+    "Bicicleta de ruta de aventura",
+    "Bicicleta BMX",
+    "Bicicleta urbana",
+    "Bicicleta crucero",
+    "Bicicleta de ciclocross",
+    "Bicicleta doble propósito",
+    "Bicicleta de fitness",
+    "Bicicleta de confort pie plano",
+    "Bicicleta plegable",
+    "Bicicleta híbrida",
+    "Bicicleta de montaña",
+    "Bicicleta reclinada",
+    "Bicicleta de ruta",
+    "Bicicleta tándem",
+    "Bicicleta de turismo",
+    "Bicicleta de pista/piñón fijo",
+    "Bicicleta de triatlón/contrarreloj",
+    "Triciclo"
+  ]
+}
