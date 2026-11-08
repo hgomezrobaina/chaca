@@ -1,0 +1,45 @@
+# Social case
+
+A social network: users follow each other, post, comment in threads,
+react, tag posts, and message each other directly.
+
+This is the case that proves two things no other case does: a
+self-referential M:N relationship (`Follow`, a user following other
+users) and a recursive tree (`Comment`, a comment replying to another
+comment of the same post), plus a second join table with a unique pair
+(`PostHashtag`).
+
+## Entities
+
+| Entity          | Documents            | Description                                                            |
+| --------------- | --------------------- | ------------------------------------------------------------------------ |
+| `User`          | 200                   | `username` is a unique sequence; `private` is a plain probability field (25% private). |
+| `Follow`        | 700                   | A user following another; never the same user on both ends, never repeated. |
+| `Post`          | 500                   | Belongs to a `User`; `created_at` on or after the author's.            |
+| `Comment`       | 900                   | Belongs to a `Post`; optionally replies to another `Comment` of the **same** post, up to 3 levels deep. |
+| `Reaction`      | 1200                  | A (user, post) pair reacts at most once.                                |
+| `Hashtag`       | 60                    | `tag` is one of 60 literal hashtags, each exactly once.                 |
+| `PostHashtag`   | 800                   | A (post, hashtag) pair, at most 5 hashtags per post.                    |
+| `DirectMessage` | 600                   | Between two different users; `read_at` only after `sent_at`.            |
+
+## Schema
+
+See [schema.md](./schema.md) for the full ER diagram, a field-by-field table per entity and the rule table — generated from the schema definitions, never hand-written. It's also the proof that the diagram generator draws a self-reference correctly: `Comment |o--o{ Comment : parent_comment_id` and the two separate `User → Follow` lines (`follower_id`, `followed_id`).
+
+## Business rules encoded in the schemas
+
+- **Follow**: `followed_id`'s `where` rejects the follower itself and any pair already recorded. The already-followed set is cached per document (not recomputed per candidate) — the same performance lesson the airline `FlightCrew` and banking `LoanInstallment` fixes apply, needed here because `where` runs once per candidate user (200) for every one of the 700 documents.
+- **Comment**: `parent_comment_id` is a **self-referencing** `chaca.ref("Comment.id", ...)` — chaca treats a ref to the schema currently being generated as a first-class case (`refItSelf`). Its `where` only accepts a candidate from the **same post** whose own `depth` is less than 2, so a child's `depth` (`parent.depth + 1`) never exceeds 2 — a 3-level tree (0, 1, 2) by construction, not by a separate cap. `nullOnEmpty: true` covers the first comment of a post, which has no eligible parent yet. `depth` and `created_at` look up the parent through `store.currentDocuments()`, since the parent is a prior document of this same, still-generating schema.
+- **Reaction**: `post_id`'s `where` rejects a post the same user already reacted to — same per-document cache pattern as `Follow`, needed for the same reason (500 candidates × 1200 documents).
+- **PostHashtag**: `post_id`'s `where` caps a post at 5 hashtags; `hashtag_id`'s `where` rejects a hashtag already attached to that post. Both counts are cached per document for the same performance reason.
+- **DirectMessage**: `recipient_id`'s `where` rejects the sender itself.
+
+## Validations (in [social.test.ts](social.test.ts))
+
+- No one follows themselves, and the (follower, followed) pair never repeats.
+- A comment's parent, when present, belongs to the same post; its `depth` matches the real depth of its parent chain, never exceeds 2, and the chain has no cycles (walked all the way to the root).
+- A user reacts to a post at most once.
+- A post has at most 5 hashtags, none repeated.
+- No direct message is sent to oneself, and `read_at`, when present, is after `sent_at`.
+- `username` and `tag` are each unique.
+- The date chain user → post → comment/reaction is non-decreasing, and a post's `edited_at`, when present, is after `created_at`.
