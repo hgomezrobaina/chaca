@@ -11,7 +11,6 @@ export const ORDER_SCHEMA = chaca.schema({
 
     return modules.date.between({ from, to: new Date() });
   },
-  total: () => modules.datatype.float({ precision: 2, max: 1000, min: 10 }),
   status: chaca.enum([
     OrderStatus.Pending,
     OrderStatus.OnProcess,

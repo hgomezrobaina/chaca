@@ -8,9 +8,9 @@ Generated from the schema definitions and the last generated dataset — see `te
 erDiagram
     Client {
         string id PK, FK "unique"
-        string enterprice "nullable"
+        string enterprise "nullable"
         string country
-        string zipCode
+        string zip_code
         string level
     }
     Employee {
@@ -18,7 +18,7 @@ erDiagram
         string department
         string charge
         float salary
-        date initDate
+        date init_date
     }
     OrderDetail {
         string id PK
@@ -33,12 +33,11 @@ erDiagram
         string client_id FK
         string employee_id FK "nullable"
         date order_date
-        float total
         string status
     }
     Payment {
         string id PK
-        string order_id FK
+        string order_id FK "unique"
         date pay_date
         float amount
         string payment_method
@@ -88,11 +87,11 @@ erDiagram
     User {
         string id PK
         string name
-        string lastName
+        string last_name
         string email
         string phone "nullable"
         string role
-        date createdAt
+        date created_at
     }
     User ||--o| Client : id
     User ||--o| Employee : id
@@ -100,7 +99,7 @@ erDiagram
     Product ||--o{ OrderDetail : product_id
     Client ||--o{ Order : client_id
     Employee |o--o{ Order : employee_id
-    Order ||--o{ Payment : order_id
+    Order ||--o| Payment : order_id
     ProductCategory ||--o{ Product : category_id
     Order ||--o| Shipment : order_id
     Transporter ||--o{ Shipment : transporter_id
@@ -116,9 +115,9 @@ erDiagram
 | Field | Type | Null | Key | Origin | Rules |
 |---|---|---|---|---|---|
 | `id` | string | no | PK, FK → User.id | `chaca.key` | R1, R2 |
-| `enterprice` | string | sometimes | — | custom function | — |
+| `enterprise` | string | sometimes | — | custom function | — |
 | `country` | string | no | — | custom function | — |
-| `zipCode` | string | no | — | custom function | — |
+| `zip_code` | string | no | — | custom function | — |
 | `level` | string | no | — | `chaca.probability` | R3 |
 
 ### Employee
@@ -129,7 +128,7 @@ erDiagram
 | `department` | string | no | — | `chaca.enum` | — |
 | `charge` | string | no | — | custom function | — |
 | `salary` | float | no | — | custom function | — |
-| `initDate` | date | no | — | custom function | — |
+| `init_date` | date | no | — | custom function | — |
 
 ### OrderDetail
 
@@ -140,7 +139,7 @@ erDiagram
 | `product_id` | string | no | FK → Product.id | `chaca.ref` | R7, R9, R11 |
 | `count` | int | no | — | custom function | R8, R10 |
 | `unit_price` | float | no | — | custom function | R9, R10 |
-| `subtotal` | float | no | — | custom function | R10 |
+| `subtotal` | float | no | — | custom function | R10, R13 |
 
 ### Order
 
@@ -150,15 +149,14 @@ erDiagram
 | `client_id` | string | no | FK → Client.id | `chaca.ref` | — |
 | `employee_id` | string | sometimes | FK → Employee.id | `chaca.ref` | — |
 | `order_date` | date | no | — | custom function | R11, R14, R17, R19 |
-| `total` | float | no | — | custom function | R13 |
-| `status` | string | no | — | `chaca.enum` | R12, R16 |
+| `status` | string | no | — | `chaca.enum` | R12, R16, R23, R24 |
 
 ### Payment
 
 | Field | Type | Null | Key | Origin | Rules |
 |---|---|---|---|---|---|
 | `id` | string | no | PK | `chaca.key` | — |
-| `order_id` | string | no | FK → Order.id | `chaca.ref` | R12, R13, R14 |
+| `order_id` | string | no | FK → Order.id | `chaca.ref` | R12, R13, R14, R24 |
 | `pay_date` | date | no | — | custom function | R14 |
 | `amount` | float | no | — | custom function | R13 |
 | `payment_method` | string | no | — | `chaca.enum` | — |
@@ -190,7 +188,7 @@ erDiagram
 | Field | Type | Null | Key | Origin | Rules |
 |---|---|---|---|---|---|
 | `id` | string | no | PK | `chaca.key` | — |
-| `order_id` | string | no | FK → Order.id | `chaca.ref` | R15, R16, R17 |
+| `order_id` | string | no | FK → Order.id | `chaca.ref` | R15, R16, R17, R23 |
 | `transporter_id` | string | no | FK → Transporter.id | `chaca.ref` | — |
 | `deliver_price` | float | no | — | custom function | — |
 | `status` | string | no | — | custom function | R16, R17, R18 |
@@ -226,11 +224,11 @@ erDiagram
 |---|---|---|---|---|---|
 | `id` | string | no | PK | `chaca.key` | R2, R5 |
 | `name` | string | no | — | custom function | — |
-| `lastName` | string | no | — | custom function | — |
+| `last_name` | string | no | — | custom function | — |
 | `email` | string | no | — | custom function | — |
 | `phone` | string | sometimes | — | custom function | — |
 | `role` | string | no | — | `chaca.probability` | R1, R2, R4, R5 |
-| `createdAt` | date | no | — | custom function | — |
+| `created_at` | date | no | — | custom function | — |
 
 ## Rules
 
@@ -248,7 +246,7 @@ erDiagram
 | R10 | An order detail's subtotal equals count times unit_price | `OrderDetail.subtotal`, `OrderDetail.count`, `OrderDetail.unit_price` |
 | R11 | An order detail's referenced product was created before the order's date | `OrderDetail.order_id`, `OrderDetail.product_id`, `Order.order_date`, `Product.created_at` |
 | R12 | A delivered order's payment status is always 'completed' | `Payment.order_id`, `Payment.status`, `Order.status` |
-| R13 | A payment's amount equals its referenced order's total | `Payment.amount`, `Payment.order_id`, `Order.total` |
+| R13 | A payment's amount equals the sum of its order's order detail subtotals | `Payment.amount`, `Payment.order_id`, `OrderDetail.subtotal` |
 | R14 | A payment's pay_date is on or after its order's order_date | `Payment.pay_date`, `Payment.order_id`, `Order.order_date` |
 | R15 | An order has at most one shipment | `Shipment.order_id` |
 | R16 | A delivered order's shipment status is always 'delivered' | `Shipment.order_id`, `Shipment.status`, `Order.status` |
@@ -258,3 +256,5 @@ erDiagram
 | R20 | A support ticket's close_date exists only when closed, and is after created_at | `SupportTicket.close_date`, `SupportTicket.status`, `SupportTicket.created_at` |
 | R21 | A product category's name is never empty | `ProductCategory.name` |
 | R22 | A transporter's email has the shape of an email address | `Transporter.email` |
+| R23 | No canceled order has a shipment | `Shipment.order_id`, `Order.status` |
+| R24 | Every non-canceled order has exactly one payment, canceled orders have none, and delivered orders are always paid | `Payment.order_id`, `Order.status` |

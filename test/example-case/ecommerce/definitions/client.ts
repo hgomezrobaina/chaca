@@ -10,9 +10,9 @@ export const CLIENT_SCHEMA = chaca.schema({
       },
     }),
   ),
-  enterprice: { type: () => modules.word.noun(), possibleNull: 0.6 },
+  enterprise: { type: () => modules.word.noun(), possibleNull: 0.6 },
   country: () => modules.address.country(),
-  zipCode: () => modules.address.zipCode(),
+  zip_code: () => modules.address.zipCode(),
   level: chaca.probability([
     { value: ClientLevel.Normal, chance: 0.8 },
     { value: ClientLevel.Premium, chance: 0.3 },

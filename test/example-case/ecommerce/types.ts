@@ -7,11 +7,11 @@ export enum UserRole {
 export interface EcommerceUser {
   id: string;
   name: string;
-  lastName: string;
+  last_name: string;
   email: string;
   phone: string | null;
   role: UserRole;
-  createdAt: Date;
+  created_at: Date;
 }
 
 export enum ClientLevel {
@@ -22,9 +22,9 @@ export enum ClientLevel {
 
 export interface EcommerceClient {
   id: string;
-  enterprice: string | null;
+  enterprise: string | null;
   country: string;
-  zipCode: string;
+  zip_code: string;
   level: ClientLevel;
 }
 
@@ -40,7 +40,7 @@ export interface EcommerceEmployee {
   department: EmployeeDepartment;
   charge: string;
   salary: number;
-  initDate: Date;
+  init_date: Date;
 }
 
 export interface EcommerceProductCategory {
@@ -73,7 +73,6 @@ export interface EcommerceOrder {
   client_id: string;
   employee_id: string | null;
   order_date: Date;
-  total: number;
   status: OrderStatus;
 }
 

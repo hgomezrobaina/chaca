@@ -4,7 +4,12 @@ import { OrderStatus, ShipmentStatus } from "../types";
 
 export const SHIPMENT_SCHEMA = chaca.schema({
   id: chaca.key(() => modules.id.uuid()),
-  order_id: chaca.ref("Order.id", { unique: true }),
+  order_id: chaca.ref("Order.id", {
+    unique: true,
+    where: ({ refFields }) => {
+      return refFields.status !== OrderStatus.Canceled;
+    },
+  }),
   transporter_id: chaca.ref("Transporter.id"),
   deliver_price: () => {
     return modules.datatype.float({ precision: 2, min: 1, max: 100 });

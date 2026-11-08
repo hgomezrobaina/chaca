@@ -1,5 +1,5 @@
 import { DatasetSchema } from "../../../../src";
-import { UserRole } from "../types";
+import { OrderStatus, UserRole } from "../types";
 import { CLIENT_SCHEMA } from "./client";
 import { EMPLOYEE_SCHEMA } from "./employee";
 import { ORDER_SCHEMA } from "./order";
@@ -33,10 +33,32 @@ export const ECOMMERCE_SCHEMAS: DatasetSchema[] = [
   },
   { documents: 80, name: "OrderDetail", schema: ORDER_DETAIL_SCHEMA },
   { documents: 30, name: "Order", schema: ORDER_SCHEMA },
-  { documents: 6, name: "Payment", schema: PAYMENT_SCHEMA },
+  {
+    documents: async ({ store }) => {
+      const orders = await store.get("Order");
+
+      return orders.filter((order) => order.status !== OrderStatus.Canceled)
+        .length;
+    },
+    name: "Payment",
+    schema: PAYMENT_SCHEMA,
+  },
   { documents: 20, name: "ProductCategory", schema: PRODUCT_CATEGORY_SCHEMA },
   { documents: 300, name: "Product", schema: PRODUCT_SCHEMA },
-  { documents: 20, name: "Shipment", schema: SHIPMENT_SCHEMA },
+  {
+    documents: async ({ store }) => {
+      const orders = await store.get("Order");
+
+      return orders.filter((order) => {
+        return (
+          order.status === OrderStatus.Send ||
+          order.status === OrderStatus.Delivered
+        );
+      }).length;
+    },
+    name: "Shipment",
+    schema: SHIPMENT_SCHEMA,
+  },
   { documents: 20, name: "SupportTicket", schema: SUPPORT_TICKET_SCHEMA },
   { documents: 30, name: "Transporter", schema: TRANSPORTER_SCHEMA },
   { documents: 100, name: "User", schema: USER_SCHEMA },

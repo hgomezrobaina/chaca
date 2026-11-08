@@ -206,17 +206,15 @@ export const ECOMMERCE_RULES: CaseRule<EcommerceDataset>[] = [
   },
   {
     id: "R13",
-    text: "A payment's amount equals its referenced order's total",
-    fields: ["Payment.amount", "Payment.order_id", "Order.total"],
-    check: ({ Payment, Order }) => {
+    text: "A payment's amount equals the sum of its order's order detail subtotals",
+    fields: ["Payment.amount", "Payment.order_id", "OrderDetail.subtotal"],
+    check: ({ Payment, OrderDetail }) => {
       for (const payment of Payment) {
-        const order = FindRef.execute({
-          documents: Order,
-          id: payment.order_id,
-          from: "Payment.order_id",
-        });
+        const expectedAmount = OrderDetail.filter((detail) => {
+          return detail.order_id === payment.order_id;
+        }).reduce((total, detail) => total + detail.subtotal, 0);
 
-        expect(payment.amount).toBe(order.total);
+        expect(payment.amount).toBe(expectedAmount);
       }
     },
   },
@@ -387,6 +385,40 @@ export const ECOMMERCE_RULES: CaseRule<EcommerceDataset>[] = [
     check: ({ Transporter }) => {
       for (const transporter of Transporter) {
         expect(transporter.email).toMatch(EMAIL_PATTERN);
+      }
+    },
+  },
+  {
+    id: "R23",
+    text: "No canceled order has a shipment",
+    fields: ["Shipment.order_id", "Order.status"],
+    check: ({ Shipment, Order }) => {
+      for (const shipment of Shipment) {
+        const order = FindRef.execute({
+          documents: Order,
+          id: shipment.order_id,
+          from: "Shipment.order_id",
+        });
+
+        expect(order.status).not.toBe(OrderStatus.Canceled);
+      }
+    },
+  },
+  {
+    id: "R24",
+    text: "Every non-canceled order has exactly one payment, canceled orders have none, and delivered orders are always paid",
+    fields: ["Payment.order_id", "Order.status"],
+    check: ({ Payment, Order }) => {
+      for (const order of Order) {
+        const payments = Payment.filter((payment) => {
+          return payment.order_id === order.id;
+        });
+
+        if (order.status === OrderStatus.Canceled) {
+          expect(payments).toHaveLength(0);
+        } else {
+          expect(payments).toHaveLength(1);
+        }
       }
     },
   },

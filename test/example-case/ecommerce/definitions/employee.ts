@@ -18,5 +18,5 @@ export const EMPLOYEE_SCHEMA = chaca.schema({
   ]),
   charge: () => modules.word.noun(),
   salary: () => modules.datatype.float({ precision: 2, min: 1000, max: 6000 }),
-  initDate: () => modules.date.past(),
+  init_date: () => modules.date.past(),
 });

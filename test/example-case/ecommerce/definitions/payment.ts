@@ -4,7 +4,12 @@ import { OrderStatus, PaymentMethod, PaymentStatus } from "../types";
 
 export const PAYMENT_SCHEMA = chaca.schema({
   id: chaca.key(() => modules.id.uuid()),
-  order_id: chaca.ref("Order.id"),
+  order_id: chaca.ref("Order.id", {
+    unique: true,
+    where: ({ refFields }) => {
+      return refFields.status !== OrderStatus.Canceled;
+    },
+  }),
   pay_date: async ({ currentFields, store }) => {
     const orders = await store.get("Order");
     const order = FindRef.execute({
@@ -16,14 +21,11 @@ export const PAYMENT_SCHEMA = chaca.schema({
     return modules.date.between({ from: order.order_date, to: new Date() });
   },
   amount: async ({ store, currentFields }) => {
-    const orders = await store.get("Order");
-    const order = FindRef.execute({
-      documents: orders,
-      id: currentFields.order_id,
-      from: "Payment.order_id",
-    });
+    const orderDetails = await store.get("OrderDetail");
 
-    return order.total;
+    return orderDetails
+      .filter((detail) => detail.order_id === currentFields.order_id)
+      .reduce((total, detail) => total + detail.subtotal, 0);
   },
   payment_method: chaca.enum([
     PaymentMethod.CreditCard,
