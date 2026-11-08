@@ -1,25 +1,36 @@
+import { mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import mermaid from "mermaid";
 import { chaca, DatasetSchema } from "../../../src";
 import { CaseRule } from "./case-rule";
+import { GenerationReport } from "./report/generation-report";
 import { ColumnTypes } from "./schema/column-types";
 import { MermaidDiagram } from "./schema/mermaid-diagram";
 import { SchemaDocument } from "./schema/schema-document";
-import { SchemaReader } from "./schema/schema-reader";
+import { CaseEntity, SchemaReader } from "./schema/schema-reader";
 
 interface Props<K> {
   name: string;
+  slug: string;
   schemas: DatasetSchema[];
   rules: CaseRule<K>[];
 }
 
+interface DataProps<K> {
+  entities: CaseEntity[];
+  data: K;
+}
+
 export class ExampleCaseTest<K> {
   private readonly name: string;
+  private readonly slug: string;
   private readonly schemas: DatasetSchema[];
   private readonly rules: CaseRule<K>[];
 
-  constructor({ name, schemas, rules }: Props<K>) {
+  constructor({ name, slug, schemas, rules }: Props<K>) {
     this.name = name;
+    this.slug = slug;
     this.schemas = schemas;
     this.rules = rules;
   }
@@ -28,6 +39,7 @@ export class ExampleCaseTest<K> {
     describe(this.name, async () => {
       const dataset = chaca.dataset<K>(this.schemas);
       const data = await dataset.generate();
+      const entities = SchemaReader.execute(this.schemas);
 
       this.checkRuleIdsAreUniqueAndWellFormed();
       this.checkRuleFieldsExist();
@@ -39,12 +51,12 @@ export class ExampleCaseTest<K> {
         });
       }
 
-      this.checkSchemaDocument(data);
+      this.checkSchemaDocument({ entities, data });
+      this.checkGenerationReport({ entities, data });
     });
   }
 
-  private checkSchemaDocument(data: K): void {
-    const entities = SchemaReader.execute(this.schemas);
+  private checkSchemaDocument({ entities, data }: DataProps<K>): void {
     const columnTypes = ColumnTypes.execute({
       entities,
       data: data as Record<string, object[]>,
@@ -64,6 +76,30 @@ export class ExampleCaseTest<K> {
 
     it("schema.md is up to date", async () => {
       await expect(document).toMatchFileSnapshot("./schema.md");
+    });
+  }
+
+  private checkGenerationReport({ entities, data }: DataProps<K>): void {
+    it("writes the generation report", () => {
+      const rows = data as Record<string, object[]>;
+      const generationReport = new GenerationReport({
+        caseName: this.name,
+        entities,
+        data: rows,
+      });
+      const report = generationReport.execute();
+
+      for (const entity of entities) {
+        const entityRows = rows[entity.name] ?? [];
+
+        expect(report).toContain(
+          `| \`${entity.name}\` | ${entityRows.length} |`,
+        );
+      }
+
+      const dir = join("data", "cases", this.slug);
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(join(dir, "report.md"), report);
     });
   }
 

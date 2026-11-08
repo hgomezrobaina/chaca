@@ -5,6 +5,7 @@ import { EcommerceDataset } from "./types";
 
 const example = new ExampleCaseTest<EcommerceDataset>({
   name: "Ecommerce case",
+  slug: "ecommerce",
   schemas: ECOMMERCE_SCHEMAS,
   rules: ECOMMERCE_RULES,
 });

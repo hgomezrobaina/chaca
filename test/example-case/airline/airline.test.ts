@@ -5,6 +5,7 @@ import { AirlineDataset } from "./types";
 
 const example = new ExampleCaseTest<AirlineDataset>({
   name: "Airline case",
+  slug: "airline",
   schemas: AIRLINE_SCHEMAS,
   rules: AIRLINE_RULES,
 });

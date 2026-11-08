@@ -5,6 +5,7 @@ import { UniversityDataset } from "./types";
 
 const example = new ExampleCaseTest<UniversityDataset>({
   name: "University case",
+  slug: "university",
   schemas: UNIVERSITY_SCHEMAS,
   rules: UNIVERSITY_RULES,
 });
