@@ -1,3 +1,47 @@
+# chaca@3.0.0
+
+## 🌚 Features
+
+### Locales: `registerLocale`, a complete Spanish, and 40 methods that can speak it
+
+- **A locale is now a value you register, not a hardcoded constant.** `modules.registerLocale(locale)` adds a `LocaleDefinition` — a plain object with every category a locale can cover (`word`, `person`, `date`, `address`, `color`, `finance`, `science`, `vehicle`, `animal`, `lorem`) — to the registry each `ChacaModules` instance keeps. `en` ships registered by default; anything else, `es` included, has to be registered explicitly:
+
+  ```ts
+  import { modules, Language } from "chaca";
+  import { es } from "chaca/locale/es";
+
+  modules.registerLocale(es);
+
+  modules.person.fullName({ language: Language.Spanish }); // "Olivia González Gómez"
+  ```
+
+- **Each locale is its own `chaca/locale/<code>` entry point**, so a bundler only ships the locales a project actually imports. `en` is always part of the main bundle; every other locale, `es` included, has to be imported from its own subpath to be included at all.
+
+- **`language` grew from 10 methods to 40.** Besides the 10 that already had it (`word.*`, `person.{firstName,lastName,fullName}`), it is now a parameter of `date.{month,weekDay,timeAgo}`, `address.{country,cardinalDirection,ordinalDirection}`, `color.human`, `finance.{accountType,subscriptionPlan,transaction,currencyMoneyName}`, `person.{gender,jobArea,jobLevel,language,sex,zodiacSign,prefix}`, `science.{unit,periodicTableElement}`, `vehicle.{type,fuel,bicycle}`, `animal.type` and all 7 `lorem` methods.
+
+- **`es` is complete, not a partial translation.** Every closed-set category (months, countries, currencies, zodiac signs, elements, units, ...) matches `en`'s coverage one for one, and every open-set category (nouns, verbs, given names, last names, ...) reaches the same minimum `en` does — 1500+ nouns and 200+ of each kind of name, among others.
+
+- **Asking for a language nobody registered does not throw.** It silently falls back to `en` — the contract Chaca already had for `es`/`en` before locales became a registry, now extended to any language code.
+
+## 🪛 Fix
+
+- **`word.conjuction()` and its underlying data were missing an `n`.** Renamed to `conjunction()` (the dataset is now `locale.word.conjunctions`); `conjuction()` is kept as a `@deprecated` alias and still works exactly as before.
+
+## ⚠️ Behavior changes
+
+- **Registering a locale is no longer implicit.** Earlier versions resolved `language: "es"` against a hardcoded Spanish dataset with no setup required. From 3.0.0, that dataset only exists once you call `modules.registerLocale(es)` — without it, every method falls back to `en`. Code that relied on Spanish working out of the box needs:
+
+  ```ts
+  import { modules } from "chaca";
+  import { es } from "chaca/locale/es";
+
+  modules.registerLocale(es);
+  ```
+
+- **`language` is now typed as the `Language` enum** (`Language.English`, `Language.Spanish`), not a `"es" | "en"` string union. A literal `"es"`/`"en"` string still works at runtime (the enum's values are those same strings) but no longer type-checks against it — use `Language.Spanish`/`Language.English`, or an explicit cast, at the call site.
+
+- **`LangugeProps` was renamed to `LanguageProps`** (the misspelling was in the public type export).
+
 # chaca@2.3.1
 
 ## ⚡ Performance

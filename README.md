@@ -44,7 +44,7 @@ import { chaca, modules } from "chaca";
 const movieSchema = chaca.schema({
   id: chaca.key(() => modules.id.uuid()),
   authors: {
-    type: () => modules.person.fullName({ language: "es" }),
+    type: () => modules.person.fullName(),
     isArray: { min: 1, max: 3 },
   },
   image: () => modules.image.film(),
@@ -62,7 +62,7 @@ const docs = await movieSchema.array(20);
 [
   {
     id: "4136cd0b-d90b-4af7-b485-5d1ded8db252",
-    authors: ["Olivia Gonzalez Gomez", "Santiago Torres Gil"],
+    authors: ["Olivia Jones", "Santiago Walker"],
     image: "https://loremflickr.com/1746/1746/film?lock=13845",
     likes: 21456,
     category: "Horror",
@@ -145,6 +145,35 @@ modules.distribution.normal({ mean: 35, standardDeviation: 8 });
 ```
 
 See the full list in the [modules documentation](https://chaca.run).
+
+## 🌍 Locales
+
+Chaca ships with English only. To generate values in another language, register its locale first:
+
+```ts
+import { modules, Language } from "chaca";
+import { es } from "chaca/locale/es";
+
+modules.registerLocale(es);
+
+modules.person.fullName({ language: Language.Spanish }); // "Olivia González Gómez"
+modules.word.noun({ language: Language.Spanish }); // "ventana"
+```
+
+Each locale is its own `chaca/locale/<code>` entry point, so a bundler only ships the locales a
+project actually imports — registering `es` never pulls Spanish data into a bundle that doesn't
+import it. `en` is the only locale that's always included.
+
+Asking for a language nobody registered never throws: it falls back silently to `en`.
+
+Not every value depends on `language`. Some data has no translation to begin with — animal breeds,
+vehicle manufacturers and models, IANA time zones, country codes, CSS value syntax — and stays the
+same regardless of the locales you register.
+
+| Code | Language |
+| --- | -------- |
+| `en` | English (default) |
+| `es` | Spanish |
 
 ## 📤 Export formats
 
