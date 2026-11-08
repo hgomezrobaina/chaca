@@ -1,4 +1,5 @@
 import { chaca, modules } from "../../../../src";
+import { GradeStatus, RegistrationStatus } from "../types";
 
 export const GRADE_SCHEMA = chaca.schema({
   id: chaca.key(() => modules.id.uuid()),
@@ -13,14 +14,18 @@ export const GRADE_SCHEMA = chaca.schema({
     let min = 0;
     let max = 100;
 
-    if (found.status === "approved") {
+    if (found.status === RegistrationStatus.Approved) {
       min = 60;
-    } else if (found.status === "failed") {
+    } else if (found.status === RegistrationStatus.Failed) {
       max = 59;
     }
 
     return modules.datatype.float({ precision: 1, min: min, max: max });
   },
   created_at: () => modules.date.past(),
-  status: chaca.enum(["pending", "published", "appealed"]),
+  status: chaca.enum([
+    GradeStatus.Pending,
+    GradeStatus.Published,
+    GradeStatus.Appealed,
+  ]),
 });

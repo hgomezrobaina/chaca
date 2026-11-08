@@ -1,4 +1,5 @@
-import { chaca } from "../../../../src";
+import { DatasetSchema } from "../../../../src";
+import { BookingStatus } from "../types";
 import { AIRCRAFT_SCHEMA } from "./aircraft";
 import { AIRLINE_SCHEMA } from "./airline";
 import { AIRPORT_SCHEMA } from "./airport";
@@ -14,7 +15,7 @@ import { PASSENGER_SCHEMA } from "./passenger";
 import { PAYMENT_SCHEMA } from "./payment";
 import { ROUTE_SCHEMA } from "./route";
 
-export const AIRLINE_DATASET = chaca.dataset([
+export const AIRLINE_SCHEMAS: DatasetSchema[] = [
   { documents: 8, name: "Airline", schema: AIRLINE_SCHEMA },
   { documents: 30, name: "Airport", schema: AIRPORT_SCHEMA },
   { documents: 120, name: "Gate", schema: GATE_SCHEMA },
@@ -38,7 +39,9 @@ export const AIRLINE_DATASET = chaca.dataset([
     documents: async ({ store }) => {
       const bookings = await store.get("Booking");
 
-      return bookings.filter((b) => b.status === "checked-in").length;
+      return bookings.filter((b) => {
+        return b.status === BookingStatus.CheckedIn;
+      }).length;
     },
     name: "CheckIn",
     schema: CHECK_IN_SCHEMA,
@@ -53,4 +56,4 @@ export const AIRLINE_DATASET = chaca.dataset([
     name: "Payment",
     schema: PAYMENT_SCHEMA,
   },
-]);
+];

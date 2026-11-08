@@ -1,4 +1,5 @@
 import { chaca, modules } from "../../../../src";
+import { CrewRole } from "../types";
 
 export const FLIGHT_CREW_SCHEMA = chaca.schema({
   id: chaca.key(() => modules.id.uuid()),
@@ -32,11 +33,11 @@ export const FLIGHT_CREW_SCHEMA = chaca.schema({
         return false;
       }
 
-      if (refFields.role === "pilot") {
+      if (refFields.role === CrewRole.Pilot) {
         const pilots = assigned.filter((d) => {
           const member = crew.find((c) => c.id === d.crew_member_id);
 
-          return member !== undefined && member.role === "pilot";
+          return member !== undefined && member.role === CrewRole.Pilot;
         });
 
         if (pilots.length >= 2) {

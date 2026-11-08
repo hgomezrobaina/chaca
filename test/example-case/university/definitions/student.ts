@@ -1,11 +1,12 @@
 import { chaca, modules } from "../../../../src";
+import { StudentStatus, UserRole } from "../types";
 
 export const STUDENT_SCHEMA = chaca.schema({
   id: chaca.key(
     chaca.ref("User.id", {
       unique: true,
       where: ({ refFields }) => {
-        return refFields.role === "student";
+        return refFields.role === UserRole.Student;
       },
     }),
   ),
@@ -13,7 +14,12 @@ export const STUDENT_SCHEMA = chaca.schema({
   birthdate: () => modules.date.birthdate({ mode: "age", min: 16 }),
   country: () => modules.address.country(),
   program_id: chaca.ref("Program.id"),
-  status: chaca.enum(["active", "suspend", "init", "graduated"]),
+  status: chaca.enum([
+    StudentStatus.Active,
+    StudentStatus.Suspend,
+    StudentStatus.Init,
+    StudentStatus.Graduated,
+  ]),
   actual_period: async ({ store, currentFields }) => {
     const programs = await store.get("Program");
 

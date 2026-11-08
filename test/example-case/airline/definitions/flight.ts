@@ -1,4 +1,5 @@
 import { chaca, modules } from "../../../../src";
+import { AircraftStatus, FlightStatus } from "../types";
 
 export const FLIGHT_SCHEMA = chaca.schema({
   id: chaca.key(() => modules.id.uuid()),
@@ -23,7 +24,7 @@ export const FLIGHT_SCHEMA = chaca.schema({
   },
   aircraft_id: chaca.ref("Aircraft.id", {
     where: ({ refFields, currentFields, store }) => {
-      if (refFields.status !== "active") {
+      if (refFields.status !== AircraftStatus.Active) {
         return false;
       }
 
@@ -54,9 +55,17 @@ export const FLIGHT_SCHEMA = chaca.schema({
   }),
   status: ({ currentFields }) => {
     if (currentFields.departure.getTime() > Date.now()) {
-      return chaca.utils.oneOfArray(["scheduled", "boarding", "cancelled"]);
+      return chaca.utils.oneOfArray([
+        FlightStatus.Scheduled,
+        FlightStatus.Boarding,
+        FlightStatus.Cancelled,
+      ]);
     }
 
-    return chaca.utils.oneOfArray(["departed", "landed", "cancelled"]);
+    return chaca.utils.oneOfArray([
+      FlightStatus.Departed,
+      FlightStatus.Landed,
+      FlightStatus.Cancelled,
+    ]);
   },
 });

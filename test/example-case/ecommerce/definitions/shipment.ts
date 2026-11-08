@@ -1,4 +1,5 @@
 import { chaca, modules } from "../../../../src";
+import { OrderStatus, ShipmentStatus } from "../types";
 
 export const SHIPMENT_SCHEMA = chaca.schema({
   id: chaca.key(() => modules.id.uuid()),
@@ -12,23 +13,23 @@ export const SHIPMENT_SCHEMA = chaca.schema({
     const found = orders.find((o) => o.id === currentFields.order_id);
 
     if (found) {
-      if (found.status === "delivered") {
-        return "delivered";
+      if (found.status === OrderStatus.Delivered) {
+        return ShipmentStatus.Delivered;
       }
     }
 
     return chaca.utils.oneOfArray([
-      "pending",
-      "in-transit",
-      "delivered",
-      "returned",
+      ShipmentStatus.Pending,
+      ShipmentStatus.InTransit,
+      ShipmentStatus.Delivered,
+      ShipmentStatus.Returned,
     ]);
   },
   send_date: async ({ currentFields, store }) => {
     if (
-      currentFields.status === "delivered" ||
-      currentFields.status === "in-transit" ||
-      currentFields.status === "returned"
+      currentFields.status === ShipmentStatus.Delivered ||
+      currentFields.status === ShipmentStatus.InTransit ||
+      currentFields.status === ShipmentStatus.Returned
     ) {
       const orders = await store.get("Order");
       const found = orders.find((o) => o.id === currentFields.order_id);
@@ -48,8 +49,8 @@ export const SHIPMENT_SCHEMA = chaca.schema({
   deliver_date: {
     type: ({ currentFields }) => {
       if (
-        currentFields.status === "delivered" ||
-        currentFields.status === "returned"
+        currentFields.status === ShipmentStatus.Delivered ||
+        currentFields.status === ShipmentStatus.Returned
       ) {
         return modules.date.between({
           from: currentFields.send_date,

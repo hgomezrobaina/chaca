@@ -1,4 +1,5 @@
-import { chaca } from "../../../../src";
+import { DatasetSchema } from "../../../../src";
+import { UserRole } from "../types";
 import { CLIENT_SCHEMA } from "./client";
 import { EMPLOYEE_SCHEMA } from "./employee";
 import { ORDER_SCHEMA } from "./order";
@@ -11,12 +12,12 @@ import { SUPPORT_TICKET_SCHEMA } from "./support-ticket";
 import { TRANSPORTER_SCHEMA } from "./transporter";
 import { USER_SCHEMA } from "./user";
 
-export const ECOMMERCE_DATASET = chaca.dataset([
+export const ECOMMERCE_SCHEMAS: DatasetSchema[] = [
   {
     documents: async ({ store }) => {
       const users = await store.get("User");
 
-      return users.filter((u) => u.role === "client").length;
+      return users.filter((u) => u.role === UserRole.Client).length;
     },
     name: "Client",
     schema: CLIENT_SCHEMA,
@@ -25,7 +26,7 @@ export const ECOMMERCE_DATASET = chaca.dataset([
     documents: async ({ store }) => {
       const users = await store.get("User");
 
-      return users.filter((u) => u.role === "employee").length;
+      return users.filter((u) => u.role === UserRole.Employee).length;
     },
     name: "Employee",
     schema: EMPLOYEE_SCHEMA,
@@ -39,4 +40,4 @@ export const ECOMMERCE_DATASET = chaca.dataset([
   { documents: 20, name: "SupportTicket", schema: SUPPORT_TICKET_SCHEMA },
   { documents: 30, name: "Transporter", schema: TRANSPORTER_SCHEMA },
   { documents: 100, name: "User", schema: USER_SCHEMA },
-]);
+];

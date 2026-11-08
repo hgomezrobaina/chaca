@@ -1,11 +1,12 @@
 import { chaca, modules } from "../../../../src";
+import { ClientLevel, UserRole } from "../types";
 
 export const CLIENT_SCHEMA = chaca.schema({
   id: chaca.key(
     chaca.ref("User.id", {
       unique: true,
       where: ({ refFields }) => {
-        return refFields.role === "client";
+        return refFields.role === UserRole.Client;
       },
     }),
   ),
@@ -13,8 +14,8 @@ export const CLIENT_SCHEMA = chaca.schema({
   country: () => modules.address.country(),
   zipCode: () => modules.address.zipCode(),
   level: chaca.probability([
-    { value: "normal", chance: 0.8 },
-    { value: "premium", chance: 0.3 },
-    { value: "vip", chance: 0.1 },
+    { value: ClientLevel.Normal, chance: 0.8 },
+    { value: ClientLevel.Premium, chance: 0.3 },
+    { value: ClientLevel.Vip, chance: 0.1 },
   ]),
 });

@@ -1,14 +1,15 @@
 import { chaca, modules } from "../../../../src";
+import { BookingStatus, FlightStatus, SeatClass } from "../types";
 
 export const BOOKING_SCHEMA = chaca.schema({
   id: chaca.key(() => modules.id.uuid()),
   seat_class: chaca.probability([
-    { value: "economy", chance: 0.8 },
-    { value: "business", chance: 0.2 },
+    { value: SeatClass.Economy, chance: 0.8 },
+    { value: SeatClass.Business, chance: 0.2 },
   ]),
   flight_id: chaca.ref("Flight.id", {
     where: async ({ refFields, currentFields, store }) => {
-      if (refFields.status === "cancelled") {
+      if (refFields.status === FlightStatus.Cancelled) {
         return false;
       }
 
@@ -16,7 +17,7 @@ export const BOOKING_SCHEMA = chaca.schema({
       const aircraft = aircrafts.find((a) => a.id === refFields.aircraft_id);
 
       const capacity =
-        currentFields.seat_class === "business"
+        currentFields.seat_class === SeatClass.Business
           ? aircraft.capacity_business
           : aircraft.capacity_economy;
 
@@ -51,7 +52,8 @@ export const BOOKING_SCHEMA = chaca.schema({
     const flight = flights.find((f) => f.id === currentFields.flight_id);
     const route = routes.find((r) => r.id === flight.route_id);
 
-    const multiplier = currentFields.seat_class === "business" ? 2.5 : 1;
+    const multiplier =
+      currentFields.seat_class === SeatClass.Business ? 2.5 : 1;
 
     return Math.round(route.distance_km * 0.12 * multiplier * 100) / 100;
   },
@@ -66,8 +68,8 @@ export const BOOKING_SCHEMA = chaca.schema({
     return modules.date.between({ from, to });
   },
   status: chaca.probability([
-    { value: "confirmed", chance: 0.5 },
-    { value: "checked-in", chance: 0.35 },
-    { value: "cancelled", chance: 0.15 },
+    { value: BookingStatus.Confirmed, chance: 0.5 },
+    { value: BookingStatus.CheckedIn, chance: 0.35 },
+    { value: BookingStatus.Cancelled, chance: 0.15 },
   ]),
 });

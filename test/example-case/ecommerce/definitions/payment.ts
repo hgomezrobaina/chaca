@@ -1,4 +1,5 @@
 import { chaca, modules } from "../../../../src";
+import { OrderStatus, PaymentMethod, PaymentStatus } from "../types";
 
 export const PAYMENT_SCHEMA = chaca.schema({
   id: chaca.key(() => modules.id.uuid()),
@@ -23,19 +24,31 @@ export const PAYMENT_SCHEMA = chaca.schema({
 
     return modules.datatype.float({ precision: 2, min: 10, max: 100 });
   },
-  payment_method: chaca.enum(["credit-card", "transfer", "paypal", "crypto"]),
+  payment_method: chaca.enum([
+    PaymentMethod.CreditCard,
+    PaymentMethod.Transfer,
+    PaymentMethod.Paypal,
+    PaymentMethod.Crypto,
+  ]),
   status: async ({ currentFields, store }) => {
     const orders = await store.get("Order");
     const found = orders.find((o) => o.id === currentFields.order_id);
 
     if (found) {
-      if (found.status === "delivered") {
-        return "completed";
+      if (found.status === OrderStatus.Delivered) {
+        return PaymentStatus.Completed;
       } else {
-        return chaca.utils.oneOfArray(["pending", "fail"]);
+        return chaca.utils.oneOfArray([
+          PaymentStatus.Pending,
+          PaymentStatus.Fail,
+        ]);
       }
     }
 
-    return chaca.utils.oneOfArray(["pending", "completed", "fail"]);
+    return chaca.utils.oneOfArray([
+      PaymentStatus.Pending,
+      PaymentStatus.Completed,
+      PaymentStatus.Fail,
+    ]);
   },
 });

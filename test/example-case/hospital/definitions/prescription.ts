@@ -1,10 +1,11 @@
 import { chaca, modules } from "../../../../src";
+import { AppointmentStatus } from "../types";
 
 export const PRESCRIPTION_SCHEMA = chaca.schema({
   id: chaca.key(() => modules.id.uuid()),
   appointment_id: chaca.ref("Appointment.id", {
     where: ({ refFields }) => {
-      return refFields.status === "completed";
+      return refFields.status === AppointmentStatus.Completed;
     },
   }),
   medication_id: chaca.ref("Medication.id", {

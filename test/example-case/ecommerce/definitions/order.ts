@@ -1,4 +1,5 @@
 import { chaca, modules } from "../../../../src";
+import { OrderStatus } from "../types";
 
 export const ORDER_SCHEMA = chaca.schema({
   id: chaca.key(() => modules.id.uuid()),
@@ -12,10 +13,10 @@ export const ORDER_SCHEMA = chaca.schema({
   },
   total: () => modules.datatype.float({ precision: 2, max: 1000, min: 10 }),
   status: chaca.enum([
-    "pending",
-    "on-process",
-    "send",
-    "delivered",
-    "canceled",
+    OrderStatus.Pending,
+    OrderStatus.OnProcess,
+    OrderStatus.Send,
+    OrderStatus.Delivered,
+    OrderStatus.Canceled,
   ]),
 });

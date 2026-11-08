@@ -1,4 +1,5 @@
 import { chaca, modules } from "../../../../src";
+import { UserRole } from "../types";
 
 export const USER_SCHEMA = chaca.schema({
   id: chaca.key(() => modules.id.uuid()),
@@ -7,9 +8,9 @@ export const USER_SCHEMA = chaca.schema({
   email: () => modules.internet.email(),
   phone: () => modules.phone.number(),
   role: chaca.probability([
-    { chance: 0.7, value: "student" },
-    { chance: 0.4, value: "teacher" },
-    { chance: 0.1, value: "admin" },
+    { chance: 0.7, value: UserRole.Student },
+    { chance: 0.4, value: UserRole.Teacher },
+    { chance: 0.1, value: UserRole.Admin },
   ]),
   created_at: () => modules.date.past(),
 });

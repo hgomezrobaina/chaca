@@ -1,4 +1,5 @@
 import { chaca, modules } from "../../../../src";
+import { InvoiceStatus } from "../types";
 
 export const INVOICE_SCHEMA = chaca.schema({
   id: chaca.key(() => modules.id.uuid()),
@@ -29,5 +30,9 @@ export const INVOICE_SCHEMA = chaca.schema({
 
     return Math.round(nights * department.daily_rate * 100) / 100;
   },
-  status: chaca.enum(["pending", "paid", "overdue"]),
+  status: chaca.enum([
+    InvoiceStatus.Pending,
+    InvoiceStatus.Paid,
+    InvoiceStatus.Overdue,
+  ]),
 });

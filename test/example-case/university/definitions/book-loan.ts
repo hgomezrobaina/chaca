@@ -1,4 +1,5 @@
 import { chaca, modules } from "../../../../src";
+import { BookLoanStatus } from "../types";
 
 export const BOOK_LOAN = chaca.schema({
   id: chaca.key(() => modules.id.uuid()),
@@ -7,7 +8,11 @@ export const BOOK_LOAN = chaca.schema({
       const result = store
         .currentDocuments()
         .filter((s) => s.student_id === refFields.id)
-        .filter((s) => s.status === "loan" || s.status === "late");
+        .filter(
+          (s) =>
+            s.status === BookLoanStatus.Loan ||
+            s.status === BookLoanStatus.Late,
+        );
 
       return result.length < 5;
     },
@@ -17,10 +22,14 @@ export const BOOK_LOAN = chaca.schema({
       return refFields.count > 0;
     },
   }),
-  status: chaca.enum(["loan", "returned", "late"]),
+  status: chaca.enum([
+    BookLoanStatus.Loan,
+    BookLoanStatus.Returned,
+    BookLoanStatus.Late,
+  ]),
   date: () => modules.date.past(),
   return_date: ({ currentFields }) => {
-    if (currentFields.status === "returned") {
+    if (currentFields.status === BookLoanStatus.Returned) {
       return modules.date.between({ from: currentFields.date, to: new Date() });
     }
 

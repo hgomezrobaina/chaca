@@ -1,4 +1,5 @@
 import { chaca, modules } from "../../../../src";
+import { BookingStatus, PaymentMethod, PaymentStatus } from "../types";
 
 export const PAYMENT_SCHEMA = chaca.schema({
   id: chaca.key(() => modules.id.uuid()),
@@ -9,16 +10,23 @@ export const PAYMENT_SCHEMA = chaca.schema({
 
     return booking.price;
   },
-  method: chaca.enum(["credit-card", "transfer", "paypal"]),
+  method: chaca.enum([
+    PaymentMethod.CreditCard,
+    PaymentMethod.Transfer,
+    PaymentMethod.Paypal,
+  ]),
   status: async ({ currentFields, store }) => {
     const bookings = await store.get("Booking");
     const booking = bookings.find((b) => b.id === currentFields.booking_id);
 
-    if (booking.status === "cancelled") {
-      return "refunded";
+    if (booking.status === BookingStatus.Cancelled) {
+      return PaymentStatus.Refunded;
     }
 
-    return chaca.utils.oneOfArray(["completed", "pending"]);
+    return chaca.utils.oneOfArray([
+      PaymentStatus.Completed,
+      PaymentStatus.Pending,
+    ]);
   },
   created_at: async ({ currentFields, store }) => {
     const bookings = await store.get("Booking");

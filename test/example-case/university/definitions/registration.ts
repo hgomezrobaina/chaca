@@ -1,4 +1,5 @@
 import { chaca, modules } from "../../../../src";
+import { RegistrationStatus } from "../types";
 
 export const REGISTRATION_SCHEMA = chaca.schema({
   id: chaca.key(() => modules.id.uuid()),
@@ -50,5 +51,10 @@ export const REGISTRATION_SCHEMA = chaca.schema({
     },
   }),
   registration_date: () => modules.date.past(),
-  status: chaca.enum(["active", "retired", "approved", "failed"]),
+  status: chaca.enum([
+    RegistrationStatus.Active,
+    RegistrationStatus.Retired,
+    RegistrationStatus.Approved,
+    RegistrationStatus.Failed,
+  ]),
 });

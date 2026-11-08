@@ -1,11 +1,21 @@
 import { chaca, modules } from "../../../../src";
+import {
+  PaymentConcept,
+  PaymentMethod,
+  PaymentStatus,
+  RegistrationStatus,
+} from "../types";
 
 export const PAYMENT_SCHEMA = chaca.schema({
   id: chaca.key(() => modules.id.uuid()),
-  method: chaca.enum(["credit-card", "transfer", "cash"]),
+  method: chaca.enum([
+    PaymentMethod.CreditCard,
+    PaymentMethod.Transfer,
+    PaymentMethod.Cash,
+  ]),
   registration_id: chaca.ref("Registration.id", {
     where: ({ refFields }) => {
-      return refFields.status === "active";
+      return refFields.status === RegistrationStatus.Active;
     },
   }),
   status: ({ currentFields, store }) => {
@@ -13,21 +23,25 @@ export const PAYMENT_SCHEMA = chaca.schema({
       return (
         r.id !== currentFields.id &&
         r.registration_id === currentFields.registration_id &&
-        r.status !== "failed"
+        r.status !== PaymentStatus.Failed
       );
     });
 
     if (exists.length > 0) {
-      return "failed";
+      return PaymentStatus.Failed;
     } else {
-      return chaca.utils.oneOfArray(["pending", "completed", "failed"]);
+      return chaca.utils.oneOfArray([
+        PaymentStatus.Pending,
+        PaymentStatus.Completed,
+        PaymentStatus.Failed,
+      ]);
     }
   },
   concept: chaca.enum([
-    "registration",
-    "extra-course",
-    "certificate",
-    "library",
+    PaymentConcept.Registration,
+    PaymentConcept.ExtraCourse,
+    PaymentConcept.Certificate,
+    PaymentConcept.Library,
   ]),
   amount: async ({ currentFields, store }) => {
     const registrations = await store.get("Registration");
