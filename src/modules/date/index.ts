@@ -325,7 +325,7 @@ export class DateModule {
 
     return dateLocale.timeAgoTemplate
       .replace("{amount}", `${amount}`)
-      .replace("{unit}", dateLocale.timeAgoUnits[unit]);
+      .replace("{unit}", dateLocale.timeAgoUnits[unit] ?? unit);
   }
 
   private timeAgoRange(unit: TimeUnits): { min: number; max: number } {

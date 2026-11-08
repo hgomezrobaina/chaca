@@ -38,4 +38,10 @@ describe("date.timeAgo", () => {
       );
     }
   });
+
+  it("unit outside the known set (e.g. from an untyped caller). should echo it back, not the literal word 'undefined'", () => {
+    const value = modules.date.timeAgo({ unit: "fortnights" as any });
+
+    expect(value).toMatch(/^\d+ fortnights ago$/);
+  });
 });

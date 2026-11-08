@@ -30,6 +30,12 @@ export class LocaleRegistry {
   }
 
   english(): LocaleDefinition {
+    const found = this.locales.get(Language.English);
+
+    if (found) {
+      return found;
+    }
+
     return ENGLISH;
   }
 
