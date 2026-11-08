@@ -11,7 +11,7 @@ export const STUDENT_SCHEMA = chaca.schema({
       },
     }),
   ),
-  code: () => chaca.utils.replaceSymbols("######"),
+  code: chaca.sequence({ startsWith: 1 }),
   birthdate: () => modules.date.birthdate({ mode: "age", min: 16 }),
   country: () => modules.address.country(),
   program_id: chaca.ref("Program.id"),

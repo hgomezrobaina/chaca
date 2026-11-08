@@ -6,6 +6,11 @@ import {
   PaymentStatus,
   RegistrationStatus,
 } from "../types";
+import {
+  CERTIFICATE_FEE,
+  EXTRA_COURSE_FEE_PER_CREDIT,
+  LIBRARY_FINE,
+} from "./fees";
 
 export const PAYMENT_SCHEMA = chaca.schema({
   id: chaca.key(() => modules.id.uuid()),
@@ -15,29 +20,16 @@ export const PAYMENT_SCHEMA = chaca.schema({
     PaymentMethod.Cash,
   ]),
   registration_id: chaca.ref("Registration.id", {
+    unique: true,
     where: ({ refFields }) => {
       return refFields.status === RegistrationStatus.Active;
     },
   }),
-  status: ({ currentFields, store }) => {
-    const exists = store.currentDocuments().filter((r) => {
-      return (
-        r.id !== currentFields.id &&
-        r.registration_id === currentFields.registration_id &&
-        r.status !== PaymentStatus.Failed
-      );
-    });
-
-    if (exists.length > 0) {
-      return PaymentStatus.Failed;
-    } else {
-      return chaca.utils.oneOfArray([
-        PaymentStatus.Pending,
-        PaymentStatus.Completed,
-        PaymentStatus.Failed,
-      ]);
-    }
-  },
+  status: chaca.enum([
+    PaymentStatus.Pending,
+    PaymentStatus.Completed,
+    PaymentStatus.Failed,
+  ]),
   concept: chaca.enum([
     PaymentConcept.Registration,
     PaymentConcept.ExtraCourse,
@@ -45,9 +37,16 @@ export const PAYMENT_SCHEMA = chaca.schema({
     PaymentConcept.Library,
   ]),
   amount: async ({ currentFields, store }) => {
+    if (currentFields.concept === PaymentConcept.Certificate) {
+      return CERTIFICATE_FEE;
+    }
+
+    if (currentFields.concept === PaymentConcept.Library) {
+      return LIBRARY_FINE;
+    }
+
     const registrations = await store.get("Registration");
     const courses = await store.get("Course");
-    const programs = await store.get("Program");
 
     const registration = FindRef.execute({
       documents: registrations,
@@ -59,6 +58,12 @@ export const PAYMENT_SCHEMA = chaca.schema({
       id: registration.course_id,
       from: "Registration.course_id",
     });
+
+    if (currentFields.concept === PaymentConcept.ExtraCourse) {
+      return course.credits * EXTRA_COURSE_FEE_PER_CREDIT;
+    }
+
+    const programs = await store.get("Program");
     const program = FindRef.execute({
       documents: programs,
       id: course.program_id,

@@ -4,7 +4,15 @@ import { GradeStatus, RegistrationStatus } from "../types";
 
 export const GRADE_SCHEMA = chaca.schema({
   id: chaca.key(() => modules.id.uuid()),
-  registration_id: chaca.ref("Registration.id", { unique: true }),
+  registration_id: chaca.ref("Registration.id", {
+    unique: true,
+    where: ({ refFields }) => {
+      return (
+        refFields.status === RegistrationStatus.Approved ||
+        refFields.status === RegistrationStatus.Failed
+      );
+    },
+  }),
   final_grade: async ({ store, currentFields }) => {
     const registrations = await store.get("Registration");
 
@@ -25,7 +33,20 @@ export const GRADE_SCHEMA = chaca.schema({
 
     return modules.datatype.float({ precision: 1, min: min, max: max });
   },
-  created_at: () => modules.date.past(),
+  created_at: async ({ store, currentFields }) => {
+    const registrations = await store.get("Registration");
+
+    const registration = FindRef.execute({
+      documents: registrations,
+      id: currentFields.registration_id,
+      from: "Grade.registration_id",
+    });
+
+    return modules.date.between({
+      from: registration.registration_date,
+      to: new Date(),
+    });
+  },
   status: chaca.enum([
     GradeStatus.Pending,
     GradeStatus.Published,

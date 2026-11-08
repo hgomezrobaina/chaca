@@ -9,8 +9,8 @@ erDiagram
     BookLoan {
         string id PK
         string student_id FK
-        string book_id FK
         string status
+        string book_id FK
         date date
         date return_date
     }
@@ -22,7 +22,7 @@ erDiagram
     }
     Course {
         string id PK
-        string code
+        int code
         string name
         boolean active
         string program_id FK
@@ -44,7 +44,7 @@ erDiagram
     Payment {
         string id PK
         string method
-        string registration_id FK
+        string registration_id FK "unique"
         string status
         string concept
         float amount
@@ -72,7 +72,7 @@ erDiagram
     }
     Student {
         string id PK, FK "unique"
-        string code
+        int code
         date birthdate
         string country
         string program_id FK
@@ -86,7 +86,7 @@ erDiagram
         date employment_date
         int salary
         string status
-        string school_dean_id FK "nullable"
+        string school_dean_id FK "nullable, null on empty"
     }
     User {
         string id PK
@@ -103,7 +103,7 @@ erDiagram
     Teacher ||--o{ Course : teacher_id
     School ||--o{ Department : school_id
     Registration ||--o| Grade : registration_id
-    Registration ||--o{ Payment : registration_id
+    Registration ||--o| Payment : registration_id
     Department ||--o{ Program : department_id
     Course ||--o{ Registration : course_id
     Student ||--o{ Registration : student_id
@@ -122,8 +122,8 @@ erDiagram
 |---|---|---|---|---|---|
 | `id` | string | no | PK | `chaca.key` | — |
 | `student_id` | string | no | FK → Student.id | `chaca.ref` | R14 |
+| `status` | string | no | — | `chaca.enum` | R13, R14, R15 |
 | `book_id` | string | no | FK → Book.id | `chaca.ref` | R13 |
-| `status` | string | no | — | `chaca.enum` | R14, R15 |
 | `date` | date | no | — | custom function | R15 |
 | `return_date` | date | no | — | custom function | R15 |
 
@@ -141,12 +141,12 @@ erDiagram
 | Field | Type | Null | Key | Origin | Rules |
 |---|---|---|---|---|---|
 | `id` | string | no | PK | `chaca.key` | — |
-| `code` | string | no | — | custom function | — |
+| `code` | int | no | — | `chaca.sequence` | R24 |
 | `name` | string | no | — | custom function | — |
 | `active` | boolean | no | — | custom function | R11 |
 | `program_id` | string | no | FK → Program.id | `chaca.ref` | R7 |
 | `teacher_id` | string | no | FK → Teacher.id | `chaca.ref` | R11 |
-| `credits` | int | no | — | custom function | R5, R10 |
+| `credits` | int | no | — | custom function | R5, R7, R10 |
 
 ### Department
 
@@ -160,10 +160,10 @@ erDiagram
 
 | Field | Type | Null | Key | Origin | Rules |
 |---|---|---|---|---|---|
-| `id` | string | no | PK | `chaca.key` | — |
-| `registration_id` | string | no | FK → Registration.id | `chaca.ref` | R1, R2, R3 |
+| `id` | string | no | PK | `chaca.key` | R29 |
+| `registration_id` | string | no | FK → Registration.id | `chaca.ref` | R1, R2, R3, R26, R27 |
 | `final_grade` | float | no | — | custom function | R3 |
-| `created_at` | date | no | — | custom function | — |
+| `created_at` | date | no | — | custom function | R27 |
 | `status` | string | no | — | `chaca.enum` | — |
 
 ### Payment
@@ -172,9 +172,9 @@ erDiagram
 |---|---|---|---|---|---|
 | `id` | string | no | PK | `chaca.key` | — |
 | `method` | string | no | — | `chaca.enum` | — |
-| `registration_id` | string | no | FK → Registration.id | `chaca.ref` | R6, R7, R9 |
-| `status` | string | no | — | custom function | R8, R9 |
-| `concept` | string | no | — | `chaca.enum` | — |
+| `registration_id` | string | no | FK → Registration.id | `chaca.ref` | R6, R7, R9, R30 |
+| `status` | string | no | — | `chaca.enum` | R8, R9 |
+| `concept` | string | no | — | `chaca.enum` | R7 |
 | `amount` | float | no | — | custom function | R7 |
 | `created_at` | date | no | — | custom function | — |
 
@@ -194,11 +194,11 @@ erDiagram
 | Field | Type | Null | Key | Origin | Rules |
 |---|---|---|---|---|---|
 | `id` | string | no | PK | `chaca.key` | R1 |
-| `period` | string | no | — | custom function | R4, R5 |
+| `period` | string | no | — | custom function | R4, R5, R28 |
 | `course_id` | string | no | FK → Course.id | `chaca.ref` | R4, R5, R7 |
 | `student_id` | string | no | FK → Student.id | `chaca.ref` | R4, R5 |
-| `registration_date` | date | no | — | custom function | — |
-| `status` | string | no | — | `chaca.enum` | R3, R6 |
+| `registration_date` | date | no | — | custom function | R27, R28 |
+| `status` | string | no | — | `chaca.enum` | R3, R6, R26, R29, R30 |
 
 ### School
 
@@ -212,12 +212,12 @@ erDiagram
 | Field | Type | Null | Key | Origin | Rules |
 |---|---|---|---|---|---|
 | `id` | string | no | PK, FK → User.id | `chaca.key` | R19 |
-| `code` | string | no | — | custom function | — |
+| `code` | int | no | — | `chaca.sequence` | R25 |
 | `birthdate` | date | no | — | custom function | R21 |
 | `country` | string | no | — | custom function | — |
 | `program_id` | string | no | FK → Program.id | `chaca.ref` | R20 |
 | `status` | string | no | — | `chaca.enum` | — |
-| `actual_period` | int | no | — | custom function | R20 |
+| `actual_period` | int | no | — | custom function | R20, R32 |
 
 ### Teacher
 
@@ -229,7 +229,7 @@ erDiagram
 | `employment_date` | date | no | — | custom function | — |
 | `salary` | int | no | — | custom function | — |
 | `status` | string | no | — | `chaca.enum` | R11, R17 |
-| `school_dean_id` | string | sometimes | FK → School.id | `chaca.ref` | R17 |
+| `school_dean_id` | string | sometimes | FK → School.id | `chaca.ref` | R17, R31 |
 
 ### User
 
@@ -253,20 +253,29 @@ erDiagram
 | R4 | A student cannot be registered more than once in the same course and period | `Registration.student_id`, `Registration.course_id`, `Registration.period` |
 | R5 | A student cannot exceed 20 credits per period | `Registration.student_id`, `Registration.period`, `Registration.course_id`, `Course.credits` |
 | R6 | Every payment references an active registration | `Payment.registration_id`, `Registration.status` |
-| R7 | A payment's amount equals the cost of its registration's program | `Payment.amount`, `Payment.registration_id`, `Registration.course_id`, `Course.program_id`, `Program.cost` |
+| R7 | A payment's amount matches its concept: program cost, credits x fee, or a fixed fee | `Payment.amount`, `Payment.concept`, `Payment.registration_id`, `Registration.course_id`, `Course.credits`, `Course.program_id`, `Program.cost` |
 | R8 | Not every payment is failed | `Payment.status` |
 | R9 | A registration can have at most one non-failed payment | `Payment.registration_id`, `Payment.status` |
 | R10 | A course's credits are between 1 and 10 | `Course.credits` |
 | R11 | An active course can only be taught by an active teacher | `Course.active`, `Course.teacher_id`, `Teacher.status` |
 | R12 | A book's count is never negative | `Book.count` |
-| R13 | Only books with stock can be loaned | `BookLoan.book_id`, `Book.count` |
+| R13 | The number of open loans of a book never exceeds its count | `BookLoan.book_id`, `BookLoan.status`, `Book.count` |
 | R14 | A student can have at most 5 open book loans | `BookLoan.student_id`, `BookLoan.status` |
 | R15 | A returned book loan's return_date is after its date | `BookLoan.status`, `BookLoan.return_date`, `BookLoan.date` |
 | R16 | The number of teachers equals the number of users with role 'teacher' | `Teacher.id`, `User.role` |
-| R17 | A teacher has a school_dean_id exactly when their status is 'active' | `Teacher.status`, `Teacher.school_dean_id` |
+| R17 | A teacher who is not 'active' never has a school_dean_id | `Teacher.status`, `Teacher.school_dean_id` |
 | R18 | A program's period_duration is between 4 and 8 | `Program.period_duration` |
 | R19 | The number of students equals the number of users with role 'student' | `Student.id`, `User.role` |
 | R20 | A student's actual_period never exceeds their program's period_duration | `Student.actual_period`, `Student.program_id`, `Program.period_duration` |
 | R21 | Every student is at least 16 years old | `Student.birthdate` |
 | R22 | A school's name is never empty | `School.name` |
 | R23 | A department's school_id references an existing school | `Department.school_id`, `School.id` |
+| R24 | Every course's code is unique | `Course.code` |
+| R25 | Every student's code is unique | `Student.code` |
+| R26 | Only 'approved' or 'failed' registrations have a grade | `Grade.registration_id`, `Registration.status` |
+| R27 | A grade's created_at is on or after its registration's registration_date | `Grade.created_at`, `Grade.registration_id`, `Registration.registration_date` |
+| R28 | A registration's registration_date falls within the half-year named by its period, and is never in the future | `Registration.period`, `Registration.registration_date` |
+| R29 | The number of grades equals the number of 'approved' or 'failed' registrations | `Grade.id`, `Registration.status` |
+| R30 | Every active registration has exactly one payment, and non-active registrations have none | `Payment.registration_id`, `Registration.status` |
+| R31 | A school has at most one dean | `Teacher.school_dean_id` |
+| R32 | A student's actual_period is always a defined integer | `Student.actual_period` |

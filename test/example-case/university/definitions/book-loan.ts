@@ -17,16 +17,28 @@ export const BOOK_LOAN = chaca.schema({
       return result.length < 5;
     },
   }),
-  book_id: chaca.ref("Book.id", {
-    where: ({ refFields }) => {
-      return refFields.count > 0;
-    },
-  }),
   status: chaca.enum([
     BookLoanStatus.Loan,
     BookLoanStatus.Returned,
     BookLoanStatus.Late,
   ]),
+  book_id: chaca.ref("Book.id", {
+    where: ({ refFields, currentFields, store }) => {
+      if (currentFields.status === BookLoanStatus.Returned) {
+        return true;
+      }
+
+      const openLoans = store.currentDocuments().filter((loan) => {
+        return (
+          loan.book_id === refFields.id &&
+          (loan.status === BookLoanStatus.Loan ||
+            loan.status === BookLoanStatus.Late)
+        );
+      });
+
+      return openLoans.length < refFields.count;
+    },
+  }),
   date: () => modules.date.past(),
   return_date: ({ currentFields }) => {
     if (currentFields.status === BookLoanStatus.Returned) {

@@ -2,7 +2,13 @@ import { expect } from "vitest";
 import { CaseRule } from "../core/case-rule";
 import { FindRef } from "../core/find-ref";
 import {
+  CERTIFICATE_FEE,
+  EXTRA_COURSE_FEE_PER_CREDIT,
+  LIBRARY_FINE,
+} from "./definitions/fees";
+import {
   BookLoanStatus,
+  PaymentConcept,
   PaymentStatus,
   RegistrationStatus,
   TeacherStatus,
@@ -63,24 +69,20 @@ export const UNIVERSITY_RULES: CaseRule<UniversityDataset>[] = [
       "Grade.final_grade",
     ],
     check: ({ Registration, Grade }) => {
-      for (const registration of Registration) {
-        const grade = Grade.find((candidate) => {
-          return candidate.registration_id === registration.id;
+      for (const grade of Grade) {
+        const registration = FindRef.execute({
+          documents: Registration,
+          id: grade.registration_id,
+          from: "Grade.registration_id",
         });
 
-        expect(grade).toBeDefined();
-
-        if (grade !== undefined) {
-          if (registration.status === RegistrationStatus.Approved) {
-            expect(grade.final_grade).toBeGreaterThanOrEqual(60);
-            expect(grade.final_grade).toBeLessThanOrEqual(100);
-          } else if (registration.status === RegistrationStatus.Failed) {
-            expect(grade.final_grade).toBeGreaterThanOrEqual(0);
-            expect(grade.final_grade).toBeLessThanOrEqual(59);
-          } else {
-            expect(grade.final_grade).toBeGreaterThanOrEqual(0);
-            expect(grade.final_grade).toBeLessThanOrEqual(100);
-          }
+        if (registration.status === RegistrationStatus.Approved) {
+          expect(grade.final_grade).toBeGreaterThanOrEqual(60);
+          expect(grade.final_grade).toBeLessThanOrEqual(100);
+        } else {
+          expect(registration.status).toBe(RegistrationStatus.Failed);
+          expect(grade.final_grade).toBeGreaterThanOrEqual(0);
+          expect(grade.final_grade).toBeLessThanOrEqual(59);
         }
       }
     },
@@ -153,16 +155,28 @@ export const UNIVERSITY_RULES: CaseRule<UniversityDataset>[] = [
   },
   {
     id: "R7",
-    text: "A payment's amount equals the cost of its registration's program",
+    text: "A payment's amount matches its concept: program cost, credits x fee, or a fixed fee",
     fields: [
       "Payment.amount",
+      "Payment.concept",
       "Payment.registration_id",
       "Registration.course_id",
+      "Course.credits",
       "Course.program_id",
       "Program.cost",
     ],
     check: ({ Payment, Registration, Course, Program }) => {
       for (const payment of Payment) {
+        if (payment.concept === PaymentConcept.Certificate) {
+          expect(payment.amount).toBe(CERTIFICATE_FEE);
+          continue;
+        }
+
+        if (payment.concept === PaymentConcept.Library) {
+          expect(payment.amount).toBe(LIBRARY_FINE);
+          continue;
+        }
+
         const registration = FindRef.execute({
           documents: Registration,
           id: payment.registration_id,
@@ -173,6 +187,14 @@ export const UNIVERSITY_RULES: CaseRule<UniversityDataset>[] = [
           id: registration.course_id,
           from: "Registration.course_id",
         });
+
+        if (payment.concept === PaymentConcept.ExtraCourse) {
+          expect(payment.amount).toBe(
+            course.credits * EXTRA_COURSE_FEE_PER_CREDIT,
+          );
+          continue;
+        }
+
         const program = FindRef.execute({
           documents: Program,
           id: course.program_id,
@@ -253,17 +275,19 @@ export const UNIVERSITY_RULES: CaseRule<UniversityDataset>[] = [
   },
   {
     id: "R13",
-    text: "Only books with stock can be loaned",
-    fields: ["BookLoan.book_id", "Book.count"],
+    text: "The number of open loans of a book never exceeds its count",
+    fields: ["BookLoan.book_id", "BookLoan.status", "Book.count"],
     check: ({ BookLoan, Book }) => {
-      for (const loan of BookLoan) {
-        const book = FindRef.execute({
-          documents: Book,
-          id: loan.book_id,
-          from: "BookLoan.book_id",
+      for (const book of Book) {
+        const openLoans = BookLoan.filter((loan) => {
+          return (
+            loan.book_id === book.id &&
+            (loan.status === BookLoanStatus.Loan ||
+              loan.status === BookLoanStatus.Late)
+          );
         });
 
-        expect(book.count).toBeGreaterThan(0);
+        expect(openLoans.length).toBeLessThanOrEqual(book.count);
       }
     },
   },
@@ -314,14 +338,12 @@ export const UNIVERSITY_RULES: CaseRule<UniversityDataset>[] = [
   },
   {
     id: "R17",
-    text: "A teacher has a school_dean_id exactly when their status is 'active'",
+    text: "A teacher who is not 'active' never has a school_dean_id",
     fields: ["Teacher.status", "Teacher.school_dean_id"],
     check: ({ Teacher }) => {
       for (const teacher of Teacher) {
         if (teacher.status !== TeacherStatus.Active) {
           expect(teacher.school_dean_id).toBeNull();
-        } else {
-          expect(teacher.school_dean_id).not.toBeNull();
         }
       }
     },
@@ -405,6 +427,149 @@ export const UNIVERSITY_RULES: CaseRule<UniversityDataset>[] = [
           id: department.school_id,
           from: "Department.school_id",
         });
+      }
+    },
+  },
+  {
+    id: "R24",
+    text: "Every course's code is unique",
+    fields: ["Course.code"],
+    check: ({ Course }) => {
+      const codes = Course.map((course) => course.code);
+
+      expect(new Set(codes).size).toBe(codes.length);
+    },
+  },
+  {
+    id: "R25",
+    text: "Every student's code is unique",
+    fields: ["Student.code"],
+    check: ({ Student }) => {
+      const codes = Student.map((student) => student.code);
+
+      expect(new Set(codes).size).toBe(codes.length);
+    },
+  },
+  {
+    id: "R26",
+    text: "Only 'approved' or 'failed' registrations have a grade",
+    fields: ["Grade.registration_id", "Registration.status"],
+    check: ({ Grade, Registration }) => {
+      for (const grade of Grade) {
+        const registration = FindRef.execute({
+          documents: Registration,
+          id: grade.registration_id,
+          from: "Grade.registration_id",
+        });
+
+        expect([
+          RegistrationStatus.Approved,
+          RegistrationStatus.Failed,
+        ]).toContain(registration.status);
+      }
+    },
+  },
+  {
+    id: "R27",
+    text: "A grade's created_at is on or after its registration's registration_date",
+    fields: [
+      "Grade.created_at",
+      "Grade.registration_id",
+      "Registration.registration_date",
+    ],
+    check: ({ Grade, Registration }) => {
+      for (const grade of Grade) {
+        const registration = FindRef.execute({
+          documents: Registration,
+          id: grade.registration_id,
+          from: "Grade.registration_id",
+        });
+
+        expect(grade.created_at.getTime()).toBeGreaterThanOrEqual(
+          registration.registration_date.getTime(),
+        );
+      }
+    },
+  },
+  {
+    id: "R28",
+    text: "A registration's registration_date falls within the half-year named by its period, and is never in the future",
+    fields: ["Registration.period", "Registration.registration_date"],
+    check: ({ Registration }) => {
+      const now = new Date();
+
+      for (const registration of Registration) {
+        const [yearText, halfText] = registration.period.split("-");
+        const year = Number(yearText);
+        const half = Number(halfText);
+        const rangeStart =
+          half === 1 ? new Date(year, 0, 1) : new Date(year, 6, 1);
+        const rangeEnd =
+          half === 1 ? new Date(year, 5, 30) : new Date(year, 11, 31);
+        const to = rangeEnd < now ? rangeEnd : now;
+        const from = rangeStart < to ? rangeStart : to;
+
+        expect(registration.registration_date.getTime()).toBeGreaterThanOrEqual(
+          from.getTime(),
+        );
+        expect(registration.registration_date.getTime()).toBeLessThanOrEqual(
+          to.getTime(),
+        );
+      }
+    },
+  },
+  {
+    id: "R29",
+    text: "The number of grades equals the number of 'approved' or 'failed' registrations",
+    fields: ["Grade.id", "Registration.status"],
+    check: ({ Grade, Registration }) => {
+      const terminal = Registration.filter((registration) => {
+        return (
+          registration.status === RegistrationStatus.Approved ||
+          registration.status === RegistrationStatus.Failed
+        );
+      });
+
+      expect(Grade.length).toBe(terminal.length);
+    },
+  },
+  {
+    id: "R30",
+    text: "Every active registration has exactly one payment, and non-active registrations have none",
+    fields: ["Payment.registration_id", "Registration.status"],
+    check: ({ Payment, Registration }) => {
+      for (const registration of Registration) {
+        const payments = Payment.filter((payment) => {
+          return payment.registration_id === registration.id;
+        });
+
+        if (registration.status === RegistrationStatus.Active) {
+          expect(payments).toHaveLength(1);
+        } else {
+          expect(payments).toHaveLength(0);
+        }
+      }
+    },
+  },
+  {
+    id: "R31",
+    text: "A school has at most one dean",
+    fields: ["Teacher.school_dean_id"],
+    check: ({ Teacher }) => {
+      const deanSchoolIds = Teacher.map(
+        (teacher) => teacher.school_dean_id,
+      ).filter((schoolId): schoolId is string => schoolId !== null);
+
+      expect(new Set(deanSchoolIds).size).toBe(deanSchoolIds.length);
+    },
+  },
+  {
+    id: "R32",
+    text: "A student's actual_period is always a defined integer",
+    fields: ["Student.actual_period"],
+    check: ({ Student }) => {
+      for (const student of Student) {
+        expect(Number.isInteger(student.actual_period)).toBe(true);
       }
     },
   },

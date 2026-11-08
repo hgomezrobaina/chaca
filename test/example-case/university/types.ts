@@ -41,7 +41,7 @@ export interface UniversityProgram {
 
 export interface UniversityCourse {
   id: string;
-  code: string;
+  code: number;
   name: string;
   active: boolean;
   program_id: string;
@@ -80,7 +80,7 @@ export enum StudentStatus {
 
 export interface UniversityStudent {
   id: string;
-  code: string;
+  code: number;
   birthdate: Date;
   country: string;
   program_id: string;
@@ -163,8 +163,8 @@ export enum BookLoanStatus {
 export interface UniversityBookLoan {
   id: string;
   student_id: string;
-  book_id: string;
   status: BookLoanStatus;
+  book_id: string;
   date: Date;
   return_date: Date | null;
 }

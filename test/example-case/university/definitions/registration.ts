@@ -51,7 +51,20 @@ export const REGISTRATION_SCHEMA = chaca.schema({
       return documents.length === 0;
     },
   }),
-  registration_date: () => modules.date.past(),
+  registration_date: ({ currentFields }) => {
+    const [yearText, halfText] = currentFields.period.split("-");
+    const year = Number(yearText);
+    const half = Number(halfText);
+
+    const rangeStart = half === 1 ? new Date(year, 0, 1) : new Date(year, 6, 1);
+    const rangeEnd =
+      half === 1 ? new Date(year, 5, 30) : new Date(year, 11, 31);
+    const now = new Date();
+    const to = rangeEnd < now ? rangeEnd : now;
+    const from = rangeStart < to ? rangeStart : to;
+
+    return modules.date.between({ from, to });
+  },
   status: chaca.enum([
     RegistrationStatus.Active,
     RegistrationStatus.Retired,

@@ -24,7 +24,16 @@ export const TEACHER_SCHEMA = chaca.schema({
     TeacherStatus.Retired,
   ]),
   school_dean_id: {
-    type: chaca.ref("School.id", {}),
+    type: chaca.ref("School.id", {
+      nullOnEmpty: true,
+      where: ({ refFields, store }) => {
+        const alreadyHasDean = store.currentDocuments().some((teacher) => {
+          return teacher.school_dean_id === refFields.id;
+        });
+
+        return !alreadyHasDean;
+      },
+    }),
     possibleNull: ({ currentFields }) => {
       return currentFields.status !== TeacherStatus.Active;
     },
