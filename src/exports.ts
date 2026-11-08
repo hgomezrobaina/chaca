@@ -42,6 +42,7 @@ import {
   EmptyEnumValuesError,
   PickFieldDefinitionError,
   FieldGenerationError,
+  WrongProbabilityFieldDefinitionError,
 } from "./errors";
 
 import {
@@ -113,6 +114,7 @@ export {
   EmptyEnumValuesError,
   PickFieldDefinitionError,
   FieldGenerationError,
+  WrongProbabilityFieldDefinitionError,
 };
 
 /**

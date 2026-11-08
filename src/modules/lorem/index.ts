@@ -125,7 +125,10 @@ export class LoremModule {
       retString = retString.concat(words[i] === " " ? "-" : words[i]);
     }
 
-    return retString;
+    // The word list has one capitalized entry ("Lorem", meant to lead a
+    // sentence), which would otherwise leak into a slug — a slug is
+    // lowercase by definition.
+    return retString.toLowerCase();
   }
 
   /**

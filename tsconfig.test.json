@@ -4,14 +4,5 @@
     "noEmit": true
   },
   "include": ["./src/**/*", "./test/**/*"],
-  // test/library/field-types/probability/probability.test.ts imports
-  // WrongProbabilityFieldDefinitionError from the public entry, but that
-  // error is never re-exported from src/exports.ts: a pre-existing bug
-  // unrelated to this plan (see pendientes.md, P-12). Excluded so this
-  // config can catch real errors in test/example-case without being red
-  // over it from day one.
-  "exclude": [
-    "node_modules",
-    "test/library/field-types/probability/probability.test.ts"
-  ]
+  "exclude": ["node_modules"]
 }
