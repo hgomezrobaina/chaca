@@ -1,0 +1,13 @@
+{
+  "months": [],
+  "weekDays": [],
+  "timeAgoUnits": {
+    "years": "years",
+    "seconds": "seconds",
+    "minutes": "minutes",
+    "days": "days",
+    "hours": "hours",
+    "months": "months"
+  },
+  "timeAgoTemplate": "{amount} {unit} ago"
+}

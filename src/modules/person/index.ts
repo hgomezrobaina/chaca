@@ -1,25 +1,14 @@
-import {
-  ILanguageNames,
-  NAMES,
-  GENDERS,
-  JOBS,
-  LANGUAGES,
-  PREFIXES,
-} from "./constants";
+import { GENDERS, JOBS, LANGUAGES, PREFIXES } from "./constants";
 import { ChacaUtils } from "../../core/utils";
 import { DatatypeModule } from "../datatype";
 import { ZODIAC_SIGN } from "./constants/zodiac";
-
-export type AllLanguages = "es" | "en";
-
-export type LangugeProps = {
-  language?: AllLanguages;
-};
+import { Language, LanguageProps } from "../../core/locale/language";
+import { LocaleCategoryResolver } from "../../core/locale/locale-category-resolver";
+import { PersonLocale } from "../../core/locale/locale";
 
 export type Sex = "male" | "female";
 
-export type NameProps = {
-  language?: AllLanguages;
+export type NameProps = LanguageProps & {
   sex?: Sex;
 };
 
@@ -29,24 +18,33 @@ export type SexProps = {
 
 export class PersonModule {
   /** The `male` + `female` lists joined, built once instead of on every call. */
-  private readonly namesCache = new WeakMap<ILanguageNames, string[]>();
+  private readonly namesCache = new WeakMap<PersonLocale, string[]>();
   private prefixesCache?: string[];
 
   constructor(
     private readonly utils: ChacaUtils,
     private readonly datatypeModule: DatatypeModule,
+    private readonly locales: LocaleCategoryResolver,
   ) {}
 
-  readonly constants = {
-    jobLevels: JOBS.JOB_LEVELS,
-    jobAreas: JOBS.JOBS_AREAS,
-    genders: GENDERS,
-    names: NAMES,
-    languages: LANGUAGES,
-    prefixes: PREFIXES,
-    zodiacSigns: ZODIAC_SIGN,
-    sexs: ["Male", "Female"],
-  };
+  get constants() {
+    return {
+      jobLevels: JOBS.JOB_LEVELS,
+      jobAreas: JOBS.JOBS_AREAS,
+      genders: GENDERS,
+      names: this.locales.byLanguage((locale) => {
+        return {
+          male: locale.person.male,
+          female: locale.person.female,
+          lastNames: locale.person.lastNames,
+        };
+      }),
+      languages: LANGUAGES,
+      prefixes: PREFIXES,
+      zodiacSigns: ZODIAC_SIGN,
+      sexs: ["Male", "Female"],
+    };
+  }
 
   /**
    * @example
@@ -95,31 +93,29 @@ export class PersonModule {
   }
 
   /**
-   * Returns a first name from a selected lenguage
-   * @param args.language (`'en'` | `'es'`). Default `'en'`
+   * Returns a first name from a registered locale.
+   * @param args.language Locale to read from. Defaults `en`
    * @param args.sex Person name sex (`'male'` | `'female'`)
    * @example modules.person.firstName() // 'Juan'
    * @returns string
    */
   firstName({ language, sex }: NameProps = {}): string {
-    return this.utils.oneOfArray(
-      this.filterBySex(this.filterNameByLanguage(language), sex),
-    );
+    return this.utils.oneOfArray(this.filterBySex(this.names(language), sex));
   }
 
   /**
-   * Returns a last name from a selected lenguage
-   * @param args.language (`en` | `es`). Default `en`
+   * Returns a last name from a registered locale.
+   * @param args.language Locale to read from. Defaults `en`
    * @example modules.person.lastName() // 'Scott'
    * @returns string
    */
-  lastName({ language }: LangugeProps = {}): string {
-    return this.utils.oneOfArray(this.filterNameByLanguage(language).lastNames);
+  lastName({ language }: LanguageProps = {}): string {
+    return this.utils.oneOfArray(this.names(language).lastNames);
   }
 
   /**
-   * Returns a full name from a selected lenguage
-   * @param args.language (`en` | `es`). Default `en`
+   * Returns a full name from a registered locale.
+   * @param args.language Locale to read from. Defaults `en`
    * @param args.sex (`male` | `female`)
    * @example
    * modules.person.fullName() // Schema
@@ -127,18 +123,18 @@ export class PersonModule {
    * @returns string
    */
   fullName({ language, sex: isex }: NameProps = {}) {
-    const lan = this.filterNameByLanguage(language);
+    const names = this.names(language);
 
     const sex = isex
       ? isex
       : (this.utils.oneOfArray(["male", "female"]) as Sex);
 
-    const firstName = this.utils.oneOfArray(this.filterBySex(lan, sex));
+    const firstName = this.utils.oneOfArray(this.filterBySex(names, sex));
     const middleName = this.datatypeModule.boolean()
-      ? this.utils.oneOfArray(this.filterBySex(lan, sex))
+      ? this.utils.oneOfArray(this.filterBySex(names, sex))
       : undefined;
-    const lastNameFirst = this.utils.oneOfArray(lan.lastNames);
-    const lastNameSecond = this.utils.oneOfArray(lan.lastNames);
+    const lastNameFirst = this.utils.oneOfArray(names.lastNames);
+    const lastNameSecond = this.utils.oneOfArray(names.lastNames);
 
     const fullName = [
       firstName,
@@ -185,17 +181,14 @@ export class PersonModule {
     return this.prefixesCache;
   }
 
-  private filterNameByLanguage(
-    language: AllLanguages | undefined,
-  ): ILanguageNames {
-    if (language && typeof language === "string") {
-      const nameSelected = NAMES[language];
-      if (nameSelected) return nameSelected;
-      else return NAMES["en"];
-    } else return NAMES["en"];
+  private names(language: Language | undefined): PersonLocale {
+    return this.locales.execute({
+      language,
+      select: (locale) => locale.person,
+    });
   }
 
-  private filterBySex(nameSel: ILanguageNames, sex: Sex | undefined): string[] {
+  private filterBySex(nameSel: PersonLocale, sex: Sex | undefined): string[] {
     if (sex && typeof sex === "string") {
       const selSex = nameSel[sex];
 
@@ -207,7 +200,7 @@ export class PersonModule {
     return this.allNames(nameSel);
   }
 
-  private allNames(nameSel: ILanguageNames): string[] {
+  private allNames(nameSel: PersonLocale): string[] {
     const cached = this.namesCache.get(nameSel);
 
     if (cached) return cached;

@@ -1,98 +1,99 @@
 import { ChacaUtils } from "../../core/utils";
-import { ILanguageWord, WORDS } from "./core/words";
-
-export type Languages = "es" | "en";
-
-export type WordProps = {
-  language?: Languages;
-};
+import { Language, LanguageProps } from "../../core/locale/language";
+import { LocaleCategoryResolver } from "../../core/locale/locale-category-resolver";
+import { WordLocale } from "../../core/locale/locale";
 
 export class WordModule {
-  constructor(private readonly utils: ChacaUtils) {}
+  constructor(
+    private readonly utils: ChacaUtils,
+    private readonly locales: LocaleCategoryResolver,
+  ) {}
 
-  readonly constants = { words: WORDS };
+  get constants() {
+    return {
+      words: this.locales.byLanguage((locale) => locale.word),
+    };
+  }
 
   /**
-   * Returns a adjective from a selected lenguage
-   * @param args.language word language (`en` | `es`). Defaults `en`
+   * Returns an adjective from a registered locale.
+   * @param args.language Locale to read from. Defaults `en`
    * @example modules.word.adjective() // 'clever'
    * @returns string
    */
-  adjective(args?: WordProps): string {
-    return this.utils.oneOfArray(this.filterWords(args?.language).adjectives);
+  adjective({ language }: LanguageProps = {}): string {
+    return this.utils.oneOfArray(this.word(language).adjectives);
   }
 
   /**
-   * Returns a conjuction from a selected lenguage
-   * @param args.language word language (`en` | `es`). Defaults `en`
-   * @example modules.word.conjuction() // 'but'
+   * Returns a conjunction from a registered locale.
+   * @param args.language Locale to read from. Defaults `en`
+   * @example modules.word.conjunction() // 'but'
    * @returns string
    */
-  conjuction(args?: WordProps): string {
-    return this.utils.oneOfArray(this.filterWords(args?.language).conjuctions);
+  conjunction({ language }: LanguageProps = {}): string {
+    return this.utils.oneOfArray(this.word(language).conjunctions);
   }
 
   /**
-   * Returns a interjection from a selected lenguage
-   * @param args.language word language (`en` | `es`). Defaults `en`
+   * @deprecated Misspelled alias of {@link WordModule.conjunction}, kept for
+   * compatibility. Use `conjunction` instead.
+   */
+  conjuction(args?: LanguageProps): string {
+    return this.conjunction(args);
+  }
+
+  /**
+   * Returns an interjection from a registered locale.
+   * @param args.language Locale to read from. Defaults `en`
    * @example modules.word.interjection() // 'hey!'
    * @returns string
    */
-  interjection(args?: WordProps): string {
-    return this.utils.oneOfArray(
-      this.filterWords(args?.language).interjections,
-    );
+  interjection({ language }: LanguageProps = {}): string {
+    return this.utils.oneOfArray(this.word(language).interjections);
   }
 
   /**
-   * Returns a preposition from a selected lenguage
-   * @param args.language word language (`en` | `es`). Defaults `en`
+   * Returns a preposition from a registered locale.
+   * @param args.language Locale to read from. Defaults `en`
    * @example modules.word.preposition() // 'at'
    * @returns string
    */
-  preposition(args?: WordProps): string {
-    return this.utils.oneOfArray(this.filterWords(args?.language).prepositions);
+  preposition({ language }: LanguageProps = {}): string {
+    return this.utils.oneOfArray(this.word(language).prepositions);
   }
 
   /**
-   * Returns a adverb from a selected lenguage
-   * @param args.language word language (`en` | `es`). Defaults `en`
+   * Returns an adverb from a registered locale.
+   * @param args.language Locale to read from. Defaults `en`
    * @example modules.word.adverb() // 'here'
    * @returns string
    */
-  adverb(args?: WordProps): string {
-    return this.utils.oneOfArray(this.filterWords(args?.language).adverbs);
+  adverb({ language }: LanguageProps = {}): string {
+    return this.utils.oneOfArray(this.word(language).adverbs);
   }
 
   /**
-   * Returns a verb from a selected lenguage
-   * @param args.language word language (`en` | `es`). Defaults `en`
+   * Returns a verb from a registered locale.
+   * @param args.language Locale to read from. Defaults `en`
    * @example modules.word.verb() // 'had'
    * @returns string
    */
-  verb(args?: WordProps): string {
-    return this.utils.oneOfArray(this.filterWords(args?.language).verbs);
+  verb({ language }: LanguageProps = {}): string {
+    return this.utils.oneOfArray(this.word(language).verbs);
   }
 
   /**
-   * Returns a noun from a selected lenguage
-   * @param args.language word language (`en` | `es`). Defaults `en`
+   * Returns a noun from a registered locale.
+   * @param args.language Locale to read from. Defaults `en`
    * @example modules.word.noun() // 'car'
    * @returns string
    */
-  noun(args?: WordProps): string {
-    return this.utils.oneOfArray(this.filterWords(args?.language).nouns);
+  noun({ language }: LanguageProps = {}): string {
+    return this.utils.oneOfArray(this.word(language).nouns);
   }
 
-  private filterWords(lan: Languages | undefined): ILanguageWord {
-    if (typeof lan === "string") {
-      const languageSelected = WORDS[lan];
-
-      if (languageSelected) {
-        return languageSelected;
-      }
-    }
-
-    return WORDS["en"];
+  private word(language: Language | undefined): WordLocale {
+    return this.locales.execute({ language, select: (locale) => locale.word });
   }
 }

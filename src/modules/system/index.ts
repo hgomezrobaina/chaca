@@ -3,6 +3,7 @@ import { MIME_TYPES } from "./constants/mime-types";
 import { FILE_EXTENSIONS } from "./constants/file-extensions";
 import { WordModule } from "../word";
 import { DatatypeModule } from "../datatype";
+import { Language } from "../../core/locale/language";
 import { nonStandardExpressions } from "./constants/non-standard-cron-expressions";
 
 export interface CronProps {
@@ -46,7 +47,7 @@ export class SystemModule {
 
     const arrayNames: string[] = Array.from({
       length: length,
-    }).map(() => this.wordModule.noun({ language: "en" }));
+    }).map(() => this.wordModule.noun({ language: Language.English }));
 
     return `${arrayNames.join("_")}${ext}`.trim();
   }

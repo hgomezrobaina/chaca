@@ -14,7 +14,11 @@ export default defineConfig([
   // separately from the rest of the package instead of always shipping inside it.
   {
     ...shared,
-    entry: { index: "src/index.ts", "locale/en": "src/locales/en/index.ts" },
+    entry: {
+      index: "src/index.ts",
+      "locale/en": "src/locales/en/index.ts",
+      "locale/es": "src/locales/es/index.ts",
+    },
     outDir: "dist",
     format: ["cjs", "esm"],
     platform: "node",
@@ -29,6 +33,7 @@ export default defineConfig([
     entry: {
       index: "src/browser.ts",
       "locale/en": "src/locales/en/index.ts",
+      "locale/es": "src/locales/es/index.ts",
     },
     outDir: "dist/browser",
     format: ["cjs", "esm"],

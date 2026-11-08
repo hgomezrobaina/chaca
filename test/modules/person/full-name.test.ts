@@ -1,5 +1,6 @@
-import { modules } from "../../../src";
-import { describe, expect, it } from "vitest";
+import { Language, modules } from "../../../src";
+import { es } from "../../../src/locales/es";
+import { beforeAll, describe, expect, it } from "vitest";
 
 function expectNames({
   firstNames,
@@ -29,10 +30,13 @@ function expectNames({
 }
 
 describe("person.fullName", () => {
-  const constants = modules.person.constants;
+  beforeAll(() => {
+    modules.registerLocale(es);
+  });
 
   it("no arguments. should return a english full name", () => {
     const value = modules.person.fullName();
+    const constants = modules.person.constants;
     const allNames = [...constants.names.en.female, ...constants.names.en.male];
 
     expectNames({
@@ -44,7 +48,8 @@ describe("person.fullName", () => {
 
   describe("language argument", () => {
     it("language = 'es'. should return an spanish full name", () => {
-      const value = modules.person.fullName({ language: "es" });
+      const value = modules.person.fullName({ language: Language.Spanish });
+      const constants = modules.person.constants;
       const allNames = [
         ...constants.names.es.female,
         ...constants.names.es.male,
@@ -58,7 +63,8 @@ describe("person.fullName", () => {
     });
 
     it("language = 'en'. should return an english full name", () => {
-      const value = modules.person.fullName({ language: "en" });
+      const value = modules.person.fullName({ language: Language.English });
+      const constants = modules.person.constants;
       const allNames = [
         ...constants.names.en.female,
         ...constants.names.en.male,
@@ -75,6 +81,7 @@ describe("person.fullName", () => {
   describe("sex argument", () => {
     it("sex = 'male'. should return an male english full name", () => {
       const value = modules.person.fullName({ sex: "male" });
+      const constants = modules.person.constants;
       const allNames = constants.names.en.male;
 
       expectNames({
@@ -87,7 +94,11 @@ describe("person.fullName", () => {
 
   describe("sex and language argument", () => {
     it("sex = 'male' and language = 'spanish'. should return an male spanish full name", () => {
-      const value = modules.person.fullName({ sex: "male", language: "es" });
+      const value = modules.person.fullName({
+        sex: "male",
+        language: Language.Spanish,
+      });
+      const constants = modules.person.constants;
       const allNames = constants.names.es.male;
 
       expectNames({

@@ -1,7 +1,5 @@
-import { ILanguageWord } from "./words";
-
-export const SPANISH_WORDS: ILanguageWord = {
-  verbs: [
+{
+  "verbs": [
     "ser",
     "haber",
     "estar",
@@ -101,9 +99,9 @@ export const SPANISH_WORDS: ILanguageWord = {
     "ofrecer",
     "descubrir",
     "levantar",
-    "intentar",
+    "intentar"
   ],
-  conjuctions: [
+  "conjunctions": [
     "y",
     "e",
     "ni",
@@ -124,9 +122,9 @@ export const SPANISH_WORDS: ILanguageWord = {
     "pues",
     "como",
     "si",
-    "luego",
+    "luego"
   ],
-  interjections: [
+  "interjections": [
     "¡ah!",
     "¡oh!",
     "¡ay!",
@@ -139,9 +137,9 @@ export const SPANISH_WORDS: ILanguageWord = {
     "¡ojalá!",
     "¡eh!",
     "¡uf!",
-    "¡bah!",
+    "¡bah!"
   ],
-  prepositions: [
+  "prepositions": [
     "a",
     "antes",
     "de",
@@ -156,9 +154,9 @@ export const SPANISH_WORDS: ILanguageWord = {
     "tras",
     "con",
     "para",
-    "sin",
+    "sin"
   ],
-  adverbs: [
+  "adverbs": [
     "aqui",
     "ya",
     "mal",
@@ -191,9 +189,9 @@ export const SPANISH_WORDS: ILanguageWord = {
     "todavía",
     "tarde",
     "arriba",
-    "lejos",
+    "lejos"
   ],
-  adjectives: [
+  "adjectives": [
     "salado",
     "dulce",
     "amargo",
@@ -270,9 +268,9 @@ export const SPANISH_WORDS: ILanguageWord = {
     "agrícola",
     "enérgetica",
     "petrolero",
-    "segundo",
+    "segundo"
   ],
-  nouns: [
+  "nouns": [
     "amor",
     "explosión",
     "crema",
@@ -386,6 +384,6 @@ export const SPANISH_WORDS: ILanguageWord = {
     "computadora",
     "cuadro",
     "teatro",
-    "sueño",
-  ],
-};
+    "sueño"
+  ]
+}

@@ -1,7 +1,12 @@
-import { modules } from "../../../src";
-import { describe, expect, it } from "vitest";
+import { Language, modules } from "../../../src";
+import { es } from "../../../src/locales/es";
+import { beforeAll, describe, expect, it } from "vitest";
 
 describe("person.firstName", () => {
+  beforeAll(() => {
+    modules.registerLocale(es);
+  });
+
   it("no arguments. should return one of the defined english first names", () => {
     const value = modules.person.firstName();
 
@@ -13,7 +18,7 @@ describe("person.firstName", () => {
 
   describe("language argument", () => {
     it("language = 'es'. should return an spanish first name", () => {
-      const value = modules.person.firstName({ language: "es" });
+      const value = modules.person.firstName({ language: Language.Spanish });
 
       const constants = modules.person.constants;
       const allNames = [
@@ -25,7 +30,7 @@ describe("person.firstName", () => {
     });
 
     it("language = 'en'. should return an english first name", () => {
-      const value = modules.person.firstName({ language: "en" });
+      const value = modules.person.firstName({ language: Language.English });
 
       const constants = modules.person.constants;
       const allNames = [
@@ -53,7 +58,10 @@ describe("person.firstName", () => {
 
   describe("sex and language argument", () => {
     it("sex = 'male' & language = 'es'. should return a male spanish first name", () => {
-      const value = modules.person.firstName({ sex: "male", language: "es" });
+      const value = modules.person.firstName({
+        sex: "male",
+        language: Language.Spanish,
+      });
       const is = modules.person.constants.names.es.male.includes(value);
       expect(is).toBe(true);
     });

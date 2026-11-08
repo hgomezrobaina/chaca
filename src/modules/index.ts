@@ -17,17 +17,18 @@ import { ColorModule } from "./color";
 import { DistributionModule } from "./distribution";
 import { ChacaUtils } from "../core/utils";
 import { LocaleRegistry } from "../core/locale/locale-registry";
+import { LocaleCategoryResolver } from "../core/locale/locale-category-resolver";
 import { LocaleDefinition } from "../core/locale/locale";
 
 export class ChacaModules {
   /**
-   * One registry per instance, not per process: two `ChacaModules` (two
-   * tests, or a library build and the server that embeds it) each keep their
-   * own registered locales, and never leak into one another. Read by the
-   * localizable modules through their own `LocaleCategoryResolver`, wired in
-   * as each module is migrated to it.
+   * One registry (and one resolver over it) per instance, not per process:
+   * two `ChacaModules` (two tests, or a library build and the server that
+   * embeds it) each keep their own registered locales, and never leak into
+   * one another.
    */
   private readonly registry = new LocaleRegistry();
+  private readonly locales = new LocaleCategoryResolver(this.registry);
 
   readonly internet: InternetModule;
   readonly datatype: DatatypeModule;
@@ -52,8 +53,8 @@ export class ChacaModules {
     this.address = new AddressModule(utils, this.datatype);
     this.id = new IdModule(this.datatype);
     this.color = new ColorModule(utils, this.datatype);
-    this.person = new PersonModule(utils, this.datatype);
-    this.word = new WordModule(utils);
+    this.person = new PersonModule(utils, this.datatype, this.locales);
+    this.word = new WordModule(utils, this.locales);
     this.internet = new InternetModule(
       this.datatype,
       utils,
