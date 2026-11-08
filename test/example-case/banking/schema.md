@@ -122,7 +122,7 @@ erDiagram
 | `currency` | string | no | — | `chaca.enum` | R4 |
 | `overdraft_limit` | float | no | — | custom function | R5 |
 | `opened_at` | date | no | — | custom function | R10, R14 |
-| `status` | string | no | — | `chaca.probability` | — |
+| `status` | string | no | — | `chaca.probability` | R4 |
 
 ### Transaction
 
@@ -209,7 +209,7 @@ erDiagram
 | R1 | An account statement's balance equals its credits minus its debits exactly | `AccountStatement.balance`, `AccountStatement.credits`, `AccountStatement.debits` |
 | R2 | The global sum of TransferLeg debits equals the global sum of TransferLeg credits | `TransferLeg.kind`, `TransferLeg.amount` |
 | R3 | Every transfer has exactly one debit leg and one credit leg, each for its amount | `TransferLeg.transfer_id`, `TransferLeg.kind`, `TransferLeg.amount`, `Transfer.amount` |
-| R4 | A transfer's source and destination accounts differ and share the same currency | `Transfer.source_account_id`, `Transfer.destination_account_id`, `Account.currency` |
+| R4 | A transfer's source and destination accounts differ, are both active, and share the same currency | `Transfer.source_account_id`, `Transfer.destination_account_id`, `Account.currency`, `Account.status` |
 | R5 | No account's balance falls below its (negative) overdraft_limit | `AccountStatement.balance`, `Account.overdraft_limit` |
 | R6 | A loan's installments sum exactly to its principal plus interest | `LoanInstallment.loan_id`, `LoanInstallment.amount`, `Loan.principal`, `Loan.annual_rate`, `Loan.term_months` |
 | R7 | A loan's installment due_dates are monthly and consecutive | `LoanInstallment.loan_id`, `LoanInstallment.number`, `LoanInstallment.due_date`, `Loan.granted_at` |

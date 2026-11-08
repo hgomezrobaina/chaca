@@ -390,7 +390,7 @@ export const ECOMMERCE_RULES: CaseRule<EcommerceDataset>[] = [
   },
   {
     id: "R23",
-    text: "No canceled order has a shipment",
+    text: "Only send/delivered orders have a shipment",
     fields: ["Shipment.order_id", "Order.status"],
     check: ({ Shipment, Order }) => {
       for (const shipment of Shipment) {
@@ -400,7 +400,9 @@ export const ECOMMERCE_RULES: CaseRule<EcommerceDataset>[] = [
           from: "Shipment.order_id",
         });
 
-        expect(order.status).not.toBe(OrderStatus.Canceled);
+        expect([OrderStatus.Send, OrderStatus.Delivered]).toContain(
+          order.status,
+        );
       }
     },
   },

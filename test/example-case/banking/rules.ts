@@ -2,7 +2,9 @@ import Decimal from "decimal.js";
 import { expect } from "vitest";
 import { CaseRule } from "../core/case-rule";
 import { FindRef } from "../core/find-ref";
+import { addMonthsClamped } from "./definitions/date-utils";
 import {
+  AccountStatus,
   AccountType,
   BankingDataset,
   KycStatus,
@@ -85,11 +87,12 @@ export const BANKING_RULES: CaseRule<BankingDataset>[] = [
   },
   {
     id: "R4",
-    text: "A transfer's source and destination accounts differ and share the same currency",
+    text: "A transfer's source and destination accounts differ, are both active, and share the same currency",
     fields: [
       "Transfer.source_account_id",
       "Transfer.destination_account_id",
       "Account.currency",
+      "Account.status",
     ],
     check: ({ Transfer, Account }) => {
       for (const transfer of Transfer) {
@@ -109,6 +112,8 @@ export const BANKING_RULES: CaseRule<BankingDataset>[] = [
         });
 
         expect(destination.currency).toBe(source.currency);
+        expect(source.status).toBe(AccountStatus.Active);
+        expect(destination.status).toBe(AccountStatus.Active);
       }
     },
   },
@@ -174,9 +179,9 @@ export const BANKING_RULES: CaseRule<BankingDataset>[] = [
         });
 
         for (const installment of installments) {
-          const expectedDueDate = new Date(loan.granted_at);
-          expectedDueDate.setMonth(
-            expectedDueDate.getMonth() + installment.number,
+          const expectedDueDate = addMonthsClamped(
+            new Date(loan.granted_at),
+            installment.number,
           );
 
           expect(installment.due_date.getTime()).toBe(

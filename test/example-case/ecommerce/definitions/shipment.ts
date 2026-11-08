@@ -7,7 +7,10 @@ export const SHIPMENT_SCHEMA = chaca.schema({
   order_id: chaca.ref("Order.id", {
     unique: true,
     where: ({ refFields }) => {
-      return refFields.status !== OrderStatus.Canceled;
+      return (
+        refFields.status === OrderStatus.Send ||
+        refFields.status === OrderStatus.Delivered
+      );
     },
   }),
   transporter_id: chaca.ref("Transporter.id"),

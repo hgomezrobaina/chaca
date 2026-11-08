@@ -256,5 +256,5 @@ erDiagram
 | R20 | A support ticket's close_date exists only when closed, and is after created_at | `SupportTicket.close_date`, `SupportTicket.status`, `SupportTicket.created_at` |
 | R21 | A product category's name is never empty | `ProductCategory.name` |
 | R22 | A transporter's email has the shape of an email address | `Transporter.email` |
-| R23 | No canceled order has a shipment | `Shipment.order_id`, `Order.status` |
+| R23 | Only send/delivered orders have a shipment | `Shipment.order_id`, `Order.status` |
 | R24 | Every non-canceled order has exactly one payment, canceled orders have none, and delivered orders are always paid | `Payment.order_id`, `Order.status` |

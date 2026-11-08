@@ -5,14 +5,20 @@ import { RegistrationStatus } from "../types";
 export const REGISTRATION_SCHEMA = chaca.schema({
   id: chaca.key(() => modules.id.uuid()),
   period: () => {
-    const year = modules.datatype.int({
-      min: 2019,
-      max: new Date().getFullYear(),
-    });
+    const now = new Date();
+    const currentYear = now.getFullYear();
 
-    const int = chaca.utils.oneOfArray([1, 2]);
+    const year = modules.datatype.int({ min: 2019, max: currentYear });
 
-    return `${year}-${int}`;
+    // The second half only starts in July: a "year-2" period of the
+    // current year isn't registerable yet before that, so it's excluded
+    // here instead of producing a registration_date outside its own range.
+    const half =
+      year === currentYear && now.getMonth() < 6
+        ? 1
+        : chaca.utils.oneOfArray([1, 2]);
+
+    return `${year}-${half}`;
   },
   course_id: chaca.ref("Course.id", {}),
   student_id: chaca.ref("Student.id", {
@@ -26,9 +32,11 @@ export const REGISTRATION_SCHEMA = chaca.schema({
             d.student_id === refFields.id && d.period === currentFields.period,
         );
 
+      const courses = await store.get("Course");
+
       for (const d of sameStudent) {
         const course = FindRef.execute({
-          documents: await store.get("Course"),
+          documents: courses,
           id: d.course_id,
           from: "Registration.course_id",
         });
@@ -36,7 +44,13 @@ export const REGISTRATION_SCHEMA = chaca.schema({
         count += course.credits;
       }
 
-      if (count > 20) {
+      const currentCourse = FindRef.execute({
+        documents: courses,
+        id: currentFields.course_id,
+        from: "Registration.course_id",
+      });
+
+      if (count + currentCourse.credits > 20) {
         return false;
       }
 

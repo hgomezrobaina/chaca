@@ -2,6 +2,7 @@ import Decimal from "decimal.js";
 import { chaca, modules } from "../../../../src";
 import { FindRef } from "../../core/find-ref";
 import { InstallmentStatus } from "../types";
+import { addMonthsClamped } from "./date-utils";
 
 /**
  * `loan_id`'s `where` runs once per candidate loan (up to 50) for every
@@ -58,10 +59,7 @@ export const LOAN_INSTALLMENT_SCHEMA = chaca.schema({
       from: "LoanInstallment.loan_id",
     });
 
-    const dueDate = new Date(loan.granted_at);
-    dueDate.setMonth(dueDate.getMonth() + currentFields.number);
-
-    return dueDate;
+    return addMonthsClamped(new Date(loan.granted_at), currentFields.number);
   },
   amount: async ({ currentFields, store }) => {
     const loans = await store.get("Loan");
