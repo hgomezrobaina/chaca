@@ -8,11 +8,6 @@ export const PRESCRIPTION_SCHEMA = chaca.schema({
       return refFields.status === AppointmentStatus.Completed;
     },
   }),
-  medication_id: chaca.ref("Medication.id", {
-    where: ({ refFields }) => {
-      return refFields.stock > 0;
-    },
-  }),
   dosage: () => {
     const amount = modules.datatype.int({ min: 1, max: 2 });
     const frequency = chaca.utils.oneOfArray([4, 6, 8, 12, 24]);
@@ -20,4 +15,14 @@ export const PRESCRIPTION_SCHEMA = chaca.schema({
     return `${amount} tablet(s) every ${frequency}h`;
   },
   quantity: () => modules.datatype.int({ min: 1, max: 30 }),
+  medication_id: chaca.ref("Medication.id", {
+    where: ({ refFields, currentFields, store }) => {
+      const alreadyPrescribed = store
+        .currentDocuments()
+        .filter((prescription) => prescription.medication_id === refFields.id)
+        .reduce((total, prescription) => total + prescription.quantity, 0);
+
+      return alreadyPrescribed + currentFields.quantity <= refFields.stock;
+    },
+  }),
 });

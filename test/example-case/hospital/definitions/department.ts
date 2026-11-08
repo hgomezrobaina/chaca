@@ -3,7 +3,7 @@ import { DepartmentName } from "../types";
 
 export const DEPARTMENT_SCHEMA = chaca.schema({
   id: chaca.key(() => modules.id.uuid()),
-  name: chaca.enum([
+  name: chaca.sequential([
     DepartmentName.Cardiology,
     DepartmentName.Neurology,
     DepartmentName.Pediatrics,

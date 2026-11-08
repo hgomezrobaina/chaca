@@ -47,5 +47,5 @@ export const HOSPITAL_SCHEMAS: DatasetSchema[] = [
     name: "Prescription",
     schema: PRESCRIPTION_SCHEMA,
   },
-  { documents: 40, name: "Room", schema: ROOM_SCHEMA },
+  { documents: 64, name: "Room", schema: ROOM_SCHEMA },
 ];

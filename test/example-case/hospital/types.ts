@@ -73,10 +73,10 @@ export interface HospitalRoom {
 
 export interface HospitalAdmission {
   id: string;
-  patient_id: string;
-  department_id: string;
   admission_date: Date;
   discharge_date: Date | null;
+  patient_id: string;
+  department_id: string;
   reason: string;
 }
 
@@ -113,9 +113,9 @@ export interface HospitalMedication {
 export interface HospitalPrescription {
   id: string;
   appointment_id: string;
-  medication_id: string;
   dosage: string;
   quantity: number;
+  medication_id: string;
 }
 
 export enum InvoiceStatus {

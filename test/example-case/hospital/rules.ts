@@ -357,4 +357,97 @@ export const HOSPITAL_RULES: CaseRule<HospitalDataset>[] = [
       expect(Math.min(...codes)).toBe(1000);
     },
   },
+  {
+    id: "R22",
+    text: "There are exactly 8 departments, each with a distinct name",
+    fields: ["Department.name"],
+    check: ({ Department }) => {
+      const names = Department.map((department) => department.name);
+
+      expect(names).toHaveLength(8);
+      expect(new Set(names).size).toBe(8);
+    },
+  },
+  {
+    id: "R23",
+    text: "A bed assignment's room belongs to its admission's department",
+    fields: [
+      "BedAssignment.room_id",
+      "BedAssignment.admission_id",
+      "Room.department_id",
+      "Admission.department_id",
+    ],
+    check: ({ BedAssignment, Room, Admission }) => {
+      for (const bedAssignment of BedAssignment) {
+        const room = FindRef.execute({
+          documents: Room,
+          id: bedAssignment.room_id,
+          from: "BedAssignment.room_id",
+        });
+        const admission = FindRef.execute({
+          documents: Admission,
+          id: bedAssignment.admission_id,
+          from: "BedAssignment.admission_id",
+        });
+
+        expect(room.department_id).toBe(admission.department_id);
+      }
+    },
+  },
+  {
+    id: "R24",
+    text: "No patient has two admissions with overlapping date ranges",
+    fields: [
+      "Admission.patient_id",
+      "Admission.admission_date",
+      "Admission.discharge_date",
+    ],
+    check: ({ Admission }) => {
+      for (const admission of Admission) {
+        const sameEnd =
+          admission.discharge_date === null
+            ? Infinity
+            : admission.discharge_date.getTime();
+
+        const overlapping = Admission.filter((other) => {
+          if (
+            other === admission ||
+            other.patient_id !== admission.patient_id
+          ) {
+            return false;
+          }
+
+          const otherEnd =
+            other.discharge_date === null
+              ? Infinity
+              : other.discharge_date.getTime();
+
+          return (
+            admission.admission_date.getTime() <= otherEnd &&
+            other.admission_date.getTime() <= sameEnd
+          );
+        });
+
+        expect(overlapping).toHaveLength(0);
+      }
+    },
+  },
+  {
+    id: "R25",
+    text: "The sum of a medication's prescribed quantities never exceeds its stock",
+    fields: [
+      "Prescription.medication_id",
+      "Prescription.quantity",
+      "Medication.stock",
+    ],
+    check: ({ Prescription, Medication }) => {
+      for (const medication of Medication) {
+        const prescribed = Prescription.filter((prescription) => {
+          return prescription.medication_id === medication.id;
+        }).reduce((total, prescription) => total + prescription.quantity, 0);
+
+        expect(prescribed).toBeLessThanOrEqual(medication.stock);
+      }
+    },
+  },
 ];
