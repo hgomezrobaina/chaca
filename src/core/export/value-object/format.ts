@@ -1,161 +1,49 @@
-import {
-  CsvFormatConfig,
-  ExportFormat,
-  JavaFormatConfig,
-  JavascriptFormatConfig,
-  JsonFormatConfig,
-  PostgresqlFormatConfig,
-  SqliteFormatConfig,
-  MysqlFormatConfig,
-  PythonFormatConfig,
-  TypescriptFormatConfig,
-  YamlFormatConfig,
-} from "../interfaces/export";
+import { ExportFormat, Extensions } from "../interfaces/export";
 import { ChacaError } from "../../../errors";
 
+const EXTENSIONS: Extensions[] = [
+  "json",
+  "java",
+  "typescript",
+  "csv",
+  "javascript",
+  "yaml",
+  "python",
+  "postgresql",
+  "sqlite",
+  "mysql",
+];
+
 export class FileFormat {
-  private _value: ExportFormat;
+  private readonly _value: ExportFormat;
 
   constructor(format?: ExportFormat) {
+    this._value = this.validate(format);
+  }
+
+  /**
+   * Checks that the format names a known extension and keeps its config
+   * untouched.
+   *
+   * The options of each format (`keys`, `indent`, `package`, `separate`...)
+   * are parsed by its own generator's constructor, so copying a subset of
+   * them here would only drop the rest.
+   */
+  private validate(format?: ExportFormat): ExportFormat {
     if (typeof format === "string") {
-      this._value = format;
-    } else if (typeof format === "object" && format !== null) {
-      if (format.ext === "json") {
-        this._value = this.validateJson(format);
-      } else if (format.ext === "csv") {
-        this._value = this.validateCsv(format);
-      } else if (format.ext === "java") {
-        this._value = this.validateJava(format);
-      } else if (format.ext === "javascript") {
-        this._value = this.validateJs(format);
-      } else if (format.ext === "postgresql") {
-        this._value = this.validatePostgresql(format);
-      } else if (format.ext === "sqlite") {
-        this._value = this.validateSqlite(format);
-      } else if (format.ext === "mysql") {
-        this._value = this.validateMysql(format);
-      } else if (format.ext === "python") {
-        this._value = this.validatePython(format);
-      } else if (format.ext === "typescript") {
-        this._value = this.validateTs(format);
-      } else if (format.ext === "yaml") {
-        this._value = this.validateYaml(format);
-      } else {
-        throw new ChacaError(`Invalid format for exportation`);
+      return format;
+    }
+
+    if (typeof format === "object" && format !== null) {
+      if (EXTENSIONS.includes(format.ext)) {
+        return format;
       }
-    } else {
-      throw new ChacaError(`Invalid format for exportation`);
     }
 
-    this._value = format;
+    throw new ChacaError(`Invalid format for exportation`);
   }
 
-  private validateYaml(format: YamlFormatConfig): YamlFormatConfig {
-    const config: YamlFormatConfig = { ext: "yaml" };
-
-    if (typeof format === "object" && format !== null) {
-      config.zip = Boolean(format.zip);
-    }
-
-    return config;
-  }
-
-  private validateTs(format: TypescriptFormatConfig): TypescriptFormatConfig {
-    const config: TypescriptFormatConfig = { ext: "typescript" };
-
-    if (typeof format === "object" && format !== null) {
-      config.zip = Boolean(format.zip);
-    }
-
-    return config;
-  }
-
-  private validatePython(format: PythonFormatConfig): PythonFormatConfig {
-    const config: PythonFormatConfig = { ext: "python" };
-
-    if (typeof format === "object" && format !== null) {
-      config.zip = Boolean(format.zip);
-    }
-
-    return config;
-  }
-
-  private validatePostgresql(
-    format: PostgresqlFormatConfig,
-  ): PostgresqlFormatConfig {
-    const config: PostgresqlFormatConfig = { ext: "postgresql" };
-
-    if (typeof format === "object" && format !== null) {
-      config.zip = Boolean(format.zip);
-    }
-
-    return config;
-  }
-
-  private validateSqlite(format: SqliteFormatConfig): SqliteFormatConfig {
-    const config: SqliteFormatConfig = { ext: "sqlite" };
-
-    if (typeof format === "object" && format !== null) {
-      config.zip = Boolean(format.zip);
-    }
-
-    return config;
-  }
-
-  private validateMysql(format: MysqlFormatConfig): MysqlFormatConfig {
-    const config: MysqlFormatConfig = { ext: "mysql" };
-
-    if (typeof format === "object" && format !== null) {
-      config.zip = Boolean(format.zip);
-    }
-
-    return config;
-  }
-
-  private validateJs(format: JavascriptFormatConfig): JavascriptFormatConfig {
-    const config: JavascriptFormatConfig = { ext: "javascript" };
-
-    if (typeof format === "object" && format !== null) {
-      config.zip = Boolean(format.zip);
-    }
-
-    return config;
-  }
-
-  private validateCsv(format: CsvFormatConfig): CsvFormatConfig {
-    const config: CsvFormatConfig = { ext: "csv" };
-
-    if (typeof format === "object" && format !== null) {
-      config.zip = Boolean(format.zip);
-    }
-
-    return config;
-  }
-
-  private validateJson(format: JsonFormatConfig): JsonFormatConfig {
-    const config: JsonFormatConfig = {
-      ext: "json",
-    };
-
-    if (typeof format === "object" && format !== null) {
-      config.separate = Boolean(format.separate);
-      config.zip = Boolean(format.zip);
-    }
-
-    return config;
-  }
-
-  private validateJava(format: JavaFormatConfig): JavaFormatConfig {
-    const config: JavaFormatConfig = { ext: "java" };
-
-    if (typeof format === "object" && format !== null) {
-      config.zip = Boolean(format.zip);
-    }
-
-    return config;
-  }
-
-  public value() {
+  public value(): ExportFormat {
     return this._value;
   }
 }
