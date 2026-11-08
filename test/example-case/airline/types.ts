@@ -85,6 +85,12 @@ export interface AirlineCrewMember {
   hired_at: Date;
 }
 
+export interface AirlineFlightCaptain {
+  id: string;
+  flight_id: string;
+  crew_member_id: string;
+}
+
 export interface AirlineFlightCrew {
   id: string;
   flight_id: string;
@@ -180,6 +186,7 @@ export interface AirlineDataset {
   Route: AirlineRoute[];
   Flight: AirlineFlight[];
   CrewMember: AirlineCrewMember[];
+  FlightCaptain: AirlineFlightCaptain[];
   FlightCrew: AirlineFlightCrew[];
   Passenger: AirlinePassenger[];
   Membership: AirlineMembership[];

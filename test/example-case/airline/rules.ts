@@ -205,27 +205,31 @@ export const AIRLINE_RULES: CaseRule<AirlineDataset>[] = [
   },
   {
     id: "R12",
-    text: "A flight has at most 4 crew assignments",
-    fields: ["FlightCrew.flight_id"],
-    check: ({ Flight, FlightCrew }) => {
+    text: "A flight has at most 4 crew assignments, counting its captain",
+    fields: ["FlightCrew.flight_id", "FlightCaptain.flight_id"],
+    check: ({ Flight, FlightCrew, FlightCaptain }) => {
       for (const flight of Flight) {
         const assigned = FlightCrew.filter((assignment) => {
           return assignment.flight_id === flight.id;
         });
+        const captains = FlightCaptain.filter((captain) => {
+          return captain.flight_id === flight.id;
+        });
 
-        expect(assigned.length).toBeLessThanOrEqual(4);
+        expect(assigned.length + captains.length).toBeLessThanOrEqual(4);
       }
     },
   },
   {
     id: "R13",
-    text: "A flight has at most 2 pilots",
+    text: "A flight has at most 2 pilots, counting its captain",
     fields: [
       "FlightCrew.flight_id",
       "FlightCrew.crew_member_id",
+      "FlightCaptain.flight_id",
       "CrewMember.role",
     ],
-    check: ({ Flight, FlightCrew, CrewMember }) => {
+    check: ({ Flight, FlightCrew, FlightCaptain, CrewMember }) => {
       for (const flight of Flight) {
         const pilots = FlightCrew.filter((assignment) => {
           if (assignment.flight_id !== flight.id) {
@@ -240,8 +244,11 @@ export const AIRLINE_RULES: CaseRule<AirlineDataset>[] = [
 
           return member.role === CrewRole.Pilot;
         });
+        const captains = FlightCaptain.filter((captain) => {
+          return captain.flight_id === flight.id;
+        });
 
-        expect(pilots.length).toBeLessThanOrEqual(2);
+        expect(pilots.length + captains.length).toBeLessThanOrEqual(2);
       }
     },
   },
@@ -329,12 +336,22 @@ export const AIRLINE_RULES: CaseRule<AirlineDataset>[] = [
   },
   {
     id: "R18",
-    text: "A membership's points are between 0 and 100000",
-    fields: ["Membership.points"],
+    text: "A membership's points fall within its tier's range, and the ranges never overlap",
+    fields: ["Membership.points", "Membership.tier"],
     check: ({ Membership }) => {
+      const rangeByTier: Record<MembershipTier, { min: number; max: number }> =
+        {
+          [MembershipTier.Bronze]: { min: 0, max: 9999 },
+          [MembershipTier.Silver]: { min: 10000, max: 49999 },
+          [MembershipTier.Gold]: { min: 50000, max: 99999 },
+          [MembershipTier.Platinum]: { min: 100000, max: 500000 },
+        };
+
       for (const membership of Membership) {
-        expect(membership.points).toBeGreaterThanOrEqual(0);
-        expect(membership.points).toBeLessThanOrEqual(100000);
+        const range = rangeByTier[membership.tier];
+
+        expect(membership.points).toBeGreaterThanOrEqual(range.min);
+        expect(membership.points).toBeLessThanOrEqual(range.max);
       }
     },
   },
@@ -670,21 +687,98 @@ export const AIRLINE_RULES: CaseRule<AirlineDataset>[] = [
   },
   {
     id: "R34",
-    text: "An airline's code is never empty",
+    text: "An airline's code is never empty, and every airline's code is unique",
     fields: ["Airline.code"],
     check: ({ Airline }) => {
       for (const airline of Airline) {
         expect(airline.code.length).toBeGreaterThan(0);
       }
+
+      const codes = Airline.map((airline) => airline.code);
+
+      expect(new Set(codes).size).toBe(codes.length);
     },
   },
   {
     id: "R35",
-    text: "An airport's code is never empty",
+    text: "An airport's code is never empty, and every airport's code is unique",
     fields: ["Airport.code"],
     check: ({ Airport }) => {
       for (const airport of Airport) {
         expect(airport.code.length).toBeGreaterThan(0);
+      }
+
+      const codes = Airport.map((airport) => airport.code);
+
+      expect(new Set(codes).size).toBe(codes.length);
+    },
+  },
+  {
+    id: "R36",
+    text: "A gate's code is unique within its airport",
+    fields: ["Gate.code", "Gate.airport_id"],
+    check: ({ Gate }) => {
+      for (const gate of Gate) {
+        const sameAirportSameCode = Gate.filter((candidate) => {
+          return (
+            candidate.airport_id === gate.airport_id &&
+            candidate.code === gate.code
+          );
+        });
+
+        expect(sameAirportSameCode).toHaveLength(1);
+      }
+    },
+  },
+  {
+    id: "R37",
+    text: "Every non-cancelled flight has exactly one captain, and cancelled flights have none",
+    fields: ["FlightCaptain.flight_id", "Flight.status"],
+    check: ({ Flight, FlightCaptain }) => {
+      for (const flight of Flight) {
+        const captains = FlightCaptain.filter((captain) => {
+          return captain.flight_id === flight.id;
+        });
+
+        if (flight.status === FlightStatus.Cancelled) {
+          expect(captains).toHaveLength(0);
+        } else {
+          expect(captains).toHaveLength(1);
+        }
+      }
+    },
+  },
+  {
+    id: "R38",
+    text: "A flight's captain is a pilot employed by the airline of its aircraft",
+    fields: [
+      "FlightCaptain.crew_member_id",
+      "FlightCaptain.flight_id",
+      "Flight.aircraft_id",
+      "Aircraft.airline_id",
+      "CrewMember.role",
+      "CrewMember.airline_id",
+    ],
+    check: ({ FlightCaptain, Flight, Aircraft, CrewMember }) => {
+      for (const captain of FlightCaptain) {
+        const flight = FindRef.execute({
+          documents: Flight,
+          id: captain.flight_id,
+          from: "FlightCaptain.flight_id",
+        });
+        const aircraft = FindRef.execute({
+          documents: Aircraft,
+          id: flight.aircraft_id,
+          from: "Flight.aircraft_id",
+        });
+        const member = FindRef.execute({
+          documents: CrewMember,
+          id: captain.crew_member_id,
+          from: "FlightCaptain.crew_member_id",
+        });
+
+        expect(member.role).toBe(CrewRole.Pilot);
+        expect(member.airline_id).toBe(aircraft.airline_id);
       }
     },
   },

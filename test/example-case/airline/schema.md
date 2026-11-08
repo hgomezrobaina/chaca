@@ -58,6 +58,11 @@ erDiagram
         string license_number "nullable"
         date hired_at
     }
+    FlightCaptain {
+        string id PK
+        string flight_id FK "unique"
+        string crew_member_id FK
+    }
     FlightCrew {
         string id PK
         string flight_id FK
@@ -116,6 +121,8 @@ erDiagram
     Aircraft ||--o{ Flight : aircraft_id
     Gate |o--o{ Flight : gate_id
     Airline ||--o{ CrewMember : airline_id
+    Flight ||--o| FlightCaptain : flight_id
+    CrewMember ||--o{ FlightCaptain : crew_member_id
     Flight ||--o{ FlightCrew : flight_id
     CrewMember ||--o{ FlightCrew : crew_member_id
     Passenger ||--o| Membership : id
@@ -134,7 +141,7 @@ erDiagram
 |---|---|---|---|---|---|
 | `id` | string | no | PK | `chaca.key` | — |
 | `name` | string | no | — | custom function | — |
-| `code` | string | no | — | custom function | R34 |
+| `code` | string | no | — | `chaca.sequential` | R34 |
 | `founded_at` | date | no | — | custom function | — |
 
 ### Airport
@@ -142,7 +149,7 @@ erDiagram
 | Field | Type | Null | Key | Origin | Rules |
 |---|---|---|---|---|---|
 | `id` | string | no | PK | `chaca.key` | — |
-| `code` | string | no | — | custom function | R35 |
+| `code` | string | no | — | `chaca.sequential` | R35 |
 | `name` | string | no | — | custom function | — |
 | `city` | string | no | — | custom function | — |
 | `country` | string | no | — | custom function | — |
@@ -152,15 +159,15 @@ erDiagram
 | Field | Type | Null | Key | Origin | Rules |
 |---|---|---|---|---|---|
 | `id` | string | no | PK | `chaca.key` | — |
-| `airport_id` | string | no | FK → Airport.id | `chaca.ref` | R8 |
-| `code` | string | no | — | custom function | — |
+| `airport_id` | string | no | FK → Airport.id | `chaca.ref` | R8, R36 |
+| `code` | string | no | — | custom function | R36 |
 
 ### Aircraft
 
 | Field | Type | Null | Key | Origin | Rules |
 |---|---|---|---|---|---|
 | `id` | string | no | PK | `chaca.key` | — |
-| `airline_id` | string | no | FK → Airline.id | `chaca.ref` | R14 |
+| `airline_id` | string | no | FK → Airline.id | `chaca.ref` | R14, R38 |
 | `model` | string | no | — | `chaca.enum` | — |
 | `capacity_economy` | int | no | — | custom function | R19 |
 | `capacity_business` | int | no | — | custom function | R19 |
@@ -186,20 +193,28 @@ erDiagram
 | `route_id` | string | no | FK → Route.id | `chaca.ref` | R5, R8 |
 | `departure` | date | no | — | custom function | R5, R7, R9, R22, R27 |
 | `arrival` | date | no | — | custom function | R5, R7 |
-| `aircraft_id` | string | no | FK → Aircraft.id | `chaca.ref` | R6, R7, R14 |
+| `aircraft_id` | string | no | FK → Aircraft.id | `chaca.ref` | R6, R7, R14, R38 |
 | `gate_id` | string | no | FK → Gate.id | `chaca.ref` | R8 |
-| `status` | string | no | — | custom function | R9, R23 |
+| `status` | string | no | — | custom function | R9, R23, R37 |
 
 ### CrewMember
 
 | Field | Type | Null | Key | Origin | Rules |
 |---|---|---|---|---|---|
 | `id` | string | no | PK | `chaca.key` | — |
-| `airline_id` | string | no | FK → Airline.id | `chaca.ref` | R14 |
+| `airline_id` | string | no | FK → Airline.id | `chaca.ref` | R14, R38 |
 | `name` | string | no | — | custom function | — |
-| `role` | string | no | — | `chaca.probability` | R10, R13 |
+| `role` | string | no | — | `chaca.probability` | R10, R13, R38 |
 | `license_number` | string | sometimes | — | custom function | R10 |
 | `hired_at` | date | no | — | custom function | — |
+
+### FlightCaptain
+
+| Field | Type | Null | Key | Origin | Rules |
+|---|---|---|---|---|---|
+| `id` | string | no | PK | `chaca.key` | — |
+| `flight_id` | string | no | FK → Flight.id | `chaca.ref` | R12, R13, R37, R38 |
+| `crew_member_id` | string | no | FK → CrewMember.id | `chaca.ref` | R38 |
 
 ### FlightCrew
 
@@ -227,7 +242,7 @@ erDiagram
 | Field | Type | Null | Key | Origin | Rules |
 |---|---|---|---|---|---|
 | `id` | string | no | PK, FK → Passenger.id | `chaca.key` | R15, R16 |
-| `tier` | string | no | — | `chaca.probability` | R17 |
+| `tier` | string | no | — | `chaca.probability` | R17, R18 |
 | `points` | int | no | — | custom function | R18 |
 | `since` | date | no | — | custom function | — |
 
@@ -287,13 +302,13 @@ erDiagram
 | R9 | 'departed' and 'landed' flights have a past departure | `Flight.status`, `Flight.departure` |
 | R10 | Pilots and copilots have a license, attendants do not | `CrewMember.role`, `CrewMember.license_number` |
 | R11 | A crew member cannot be assigned twice to the same flight | `FlightCrew.flight_id`, `FlightCrew.crew_member_id` |
-| R12 | A flight has at most 4 crew assignments | `FlightCrew.flight_id` |
-| R13 | A flight has at most 2 pilots | `FlightCrew.flight_id`, `FlightCrew.crew_member_id`, `CrewMember.role` |
+| R12 | A flight has at most 4 crew assignments, counting its captain | `FlightCrew.flight_id`, `FlightCaptain.flight_id` |
+| R13 | A flight has at most 2 pilots, counting its captain | `FlightCrew.flight_id`, `FlightCrew.crew_member_id`, `FlightCaptain.flight_id`, `CrewMember.role` |
 | R14 | A flight's crew members belong to the airline of its aircraft | `FlightCrew.flight_id`, `FlightCrew.crew_member_id`, `Flight.aircraft_id`, `Aircraft.airline_id`, `CrewMember.airline_id` |
 | R15 | The number of memberships equals the number of passengers with a frequent flyer number | `Membership.id`, `Passenger.frequent_flyer_number` |
 | R16 | Every membership maps to a passenger with a frequent flyer number | `Membership.id`, `Passenger.frequent_flyer_number` |
 | R17 | There are more 'bronze' memberships than any other tier | `Membership.tier` |
-| R18 | A membership's points are between 0 and 100000 | `Membership.points` |
+| R18 | A membership's points fall within its tier's range, and the ranges never overlap | `Membership.points`, `Membership.tier` |
 | R19 | Bookings per flight and class never exceed the aircraft's capacity | `Booking.flight_id`, `Booking.seat_class`, `Aircraft.capacity_economy`, `Aircraft.capacity_business` |
 | R20 | A booking's price equals distance times 0.12, with a 2.5 multiplier for business | `Booking.price`, `Booking.seat_class`, `Booking.flight_id`, `Route.distance_km` |
 | R21 | A passenger cannot book the same flight twice | `Booking.flight_id`, `Booking.passenger_id` |
@@ -309,5 +324,8 @@ erDiagram
 | R31 | A payment's amount equals its booking's price | `Payment.amount`, `Payment.booking_id`, `Booking.price` |
 | R32 | A cancelled booking has a refunded payment; otherwise it's completed or pending | `Payment.status`, `Payment.booking_id`, `Booking.status` |
 | R33 | A payment's created_at is on or after its booking's booking_date | `Payment.created_at`, `Payment.booking_id`, `Booking.booking_date` |
-| R34 | An airline's code is never empty | `Airline.code` |
-| R35 | An airport's code is never empty | `Airport.code` |
+| R34 | An airline's code is never empty, and every airline's code is unique | `Airline.code` |
+| R35 | An airport's code is never empty, and every airport's code is unique | `Airport.code` |
+| R36 | A gate's code is unique within its airport | `Gate.code`, `Gate.airport_id` |
+| R37 | Every non-cancelled flight has exactly one captain, and cancelled flights have none | `FlightCaptain.flight_id`, `Flight.status` |
+| R38 | A flight's captain is a pilot employed by the airline of its aircraft | `FlightCaptain.crew_member_id`, `FlightCaptain.flight_id`, `Flight.aircraft_id`, `Aircraft.airline_id`, `CrewMember.role`, `CrewMember.airline_id` |
