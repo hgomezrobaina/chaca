@@ -1,5 +1,5 @@
 import { ChacaUtils } from "../../core/utils";
-import { BICYCLE, FUEL, MANUFACTURER, MODEL, TYPE, WMI } from "./constants";
+import { MANUFACTURER, MODEL, WMI } from "./constants";
 import {
   VIN_CHARS,
   VIN_TRANSLITERATION,
@@ -7,6 +7,8 @@ import {
   VIN_YEAR_CODES,
   VIN_YEAR_CYCLE_START,
 } from "./constants/vin";
+import { LanguageProps } from "../../core/locale/language";
+import { LocaleCategoryResolver } from "../../core/locale/locale-category-resolver";
 
 export interface VinConfig {
   /**
@@ -22,24 +24,35 @@ export interface VinConfig {
 }
 
 export class VehicleModule {
-  constructor(private readonly utils: ChacaUtils) {}
+  constructor(
+    private readonly utils: ChacaUtils,
+    private readonly locales: LocaleCategoryResolver,
+  ) {}
 
-  readonly constants = {
-    bicycles: BICYCLE,
-    fuels: FUEL,
-    manufacturers: MANUFACTURER,
-    models: MODEL,
-    vehicleTypes: TYPE,
-    wmi: WMI,
-  };
+  get constants() {
+    return {
+      manufacturers: MANUFACTURER,
+      models: MODEL,
+      wmi: WMI,
+      bicycles: this.locales.byLanguage((locale) => locale.vehicle.bicycles),
+      fuels: this.locales.byLanguage((locale) => locale.vehicle.fuels),
+      vehicleTypes: this.locales.byLanguage((locale) => locale.vehicle.types),
+    };
+  }
 
   /**
-   * Returns a bicycle type
+   * Returns a bicycle type from a registered locale.
+   * @param args.language Locale to read from. Defaults `en`
    * @example modules.vehicle.bicycle() // 'BMX Bicycle'
    * @returns string
    */
-  bicycle(): string {
-    return this.utils.oneOfArray(BICYCLE);
+  bicycle({ language }: LanguageProps = {}): string {
+    const bicycles = this.locales.execute({
+      language,
+      select: (locale) => locale.vehicle.bicycles,
+    });
+
+    return this.utils.oneOfArray(bicycles);
   }
 
   /**
@@ -61,12 +74,18 @@ export class VehicleModule {
   }
 
   /**
-   * Returns a vehicle type
+   * Returns a vehicle type from a registered locale.
+   * @param args.language Locale to read from. Defaults `en`
    * @example modules.vehicle.type() // 'Coupe'
    * @returns string
    */
-  type(): string {
-    return this.utils.oneOfArray(TYPE);
+  type({ language }: LanguageProps = {}): string {
+    const types = this.locales.execute({
+      language,
+      select: (locale) => locale.vehicle.types,
+    });
+
+    return this.utils.oneOfArray(types);
   }
 
   /**
@@ -79,12 +98,18 @@ export class VehicleModule {
   }
 
   /**
-   * Returns a fuel type
+   * Returns a fuel type from a registered locale.
+   * @param args.language Locale to read from. Defaults `en`
    * @example modules.vehicle.fuel() // 'Diesel'
    * @returns string
    */
-  fuel(): string {
-    return this.utils.oneOfArray(FUEL);
+  fuel({ language }: LanguageProps = {}): string {
+    const fuels = this.locales.execute({
+      language,
+      select: (locale) => locale.vehicle.fuels,
+    });
+
+    return this.utils.oneOfArray(fuels);
   }
 
   /**

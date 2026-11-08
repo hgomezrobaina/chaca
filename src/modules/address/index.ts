@@ -1,9 +1,9 @@
-import { COUNTRY_CODE, COUNTRY_LIST } from "./constants/countries";
+import { COUNTRY_CODE } from "./constants/countries";
 import { TIME_ZONE } from "./constants/time-zone";
-import { CARDINAL_DIRECTIONS } from "./constants/cardinal-directions";
-import { ORDINAL } from "./constants/ordinal";
 import { ChacaUtils } from "../../core/utils";
 import { DatatypeModule } from "../datatype";
+import { LanguageProps } from "../../core/locale/language";
+import { LocaleCategoryResolver } from "../../core/locale/locale-category-resolver";
 
 export type ZipCodeProps = {
   format?: string;
@@ -18,7 +18,7 @@ export type Continent =
   | "North America"
   | "Antarctica";
 
-export type CountryProps = {
+export type CountryProps = LanguageProps & {
   continent?: Continent;
 };
 
@@ -38,15 +38,22 @@ export class AddressModule {
   constructor(
     private readonly utils: ChacaUtils,
     private readonly datatypeModule: DatatypeModule,
+    private readonly locales: LocaleCategoryResolver,
   ) {}
 
-  readonly constants = {
-    timeZones: TIME_ZONE,
-    countries: COUNTRY_LIST,
-    countriesCode: COUNTRY_CODE,
-    cardinalDirections: CARDINAL_DIRECTIONS,
-    ordinalDirection: ORDINAL,
-  };
+  get constants() {
+    return {
+      timeZones: TIME_ZONE,
+      countriesCode: COUNTRY_CODE,
+      countries: this.locales.byLanguage((locale) => locale.address.countries),
+      cardinalDirections: this.locales.byLanguage((locale) => {
+        return locale.address.cardinalDirections;
+      }),
+      ordinalDirection: this.locales.byLanguage((locale) => {
+        return locale.address.ordinalDirections;
+      }),
+    };
+  }
 
   /**
    * Returns a zip code
@@ -71,32 +78,42 @@ export class AddressModule {
   }
 
   /**
-   * Returns a cardinal direction
+   * Returns a cardinal direction from a registered locale.
+   * @param args.language Locale to read from. Defaults `en`
    * @example modules.address.cardinalDirection()// 'North'
    * @returns string
    */
-  cardinalDirection(): string {
-    return this.utils.oneOfArray(this.constants.cardinalDirections);
+  cardinalDirection({ language }: LanguageProps = {}): string {
+    const directions = this.locales.execute({
+      language,
+      select: (locale) => locale.address.cardinalDirections,
+    });
+
+    return this.utils.oneOfArray(directions);
   }
 
   /**
-   * Returns a country
+   * Returns a country from a registered locale.
    * @param args.continent Continent of the country that you want
+   * @param args.language Locale to read from. Defaults `en`
    * @example modules.address.country() // 'Spain'
    * @returns string
    */
-  country({ continent }: CountryProps = {}): string {
+  country({ continent, language }: CountryProps = {}): string {
+    const countries = this.locales.execute({
+      language,
+      select: (locale) => locale.address.countries,
+    });
+
     if (continent && typeof continent === "string") {
-      const filterList = COUNTRY_LIST.filter(
-        (el) => el.continent === continent,
-      );
+      const filterList = countries.filter((el) => el.continent === continent);
 
       if (filterList.length > 0) {
         return this.utils.oneOfArray(filterList.map((el) => el.country));
       }
     }
 
-    return this.utils.oneOfArray(COUNTRY_LIST.map((el) => el.country));
+    return this.utils.oneOfArray(countries.map((el) => el.country));
   }
 
   /**
@@ -109,13 +126,20 @@ export class AddressModule {
   }
 
   /**
-   * Returns a random ordinal direction (northwest, southeast, etc).
+   * Returns a random ordinal direction (northwest, southeast, etc) from a
+   * registered locale.
    *
+   * @param args.language Locale to read from. Defaults `en`
    * @example
    * modules.address.ordinalDirection() // 'Northeast'
    */
-  ordinalDirection(): string {
-    return this.utils.oneOfArray(ORDINAL);
+  ordinalDirection({ language }: LanguageProps = {}): string {
+    const directions = this.locales.execute({
+      language,
+      select: (locale) => locale.address.ordinalDirections,
+    });
+
+    return this.utils.oneOfArray(directions);
   }
 
   /**

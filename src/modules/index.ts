@@ -50,9 +50,9 @@ export class ChacaModules {
 
   constructor(utils: ChacaUtils) {
     this.datatype = new DatatypeModule(utils);
-    this.address = new AddressModule(utils, this.datatype);
+    this.address = new AddressModule(utils, this.datatype, this.locales);
     this.id = new IdModule(this.datatype);
-    this.color = new ColorModule(utils, this.datatype);
+    this.color = new ColorModule(utils, this.datatype, this.locales);
     this.person = new PersonModule(utils, this.datatype, this.locales);
     this.word = new WordModule(utils, this.locales);
     this.internet = new InternetModule(
@@ -61,15 +61,15 @@ export class ChacaModules {
       this.person,
       this.word,
     );
-    this.science = new ScienceModule(utils);
-    this.vehicle = new VehicleModule(utils);
-    this.lorem = new LoremModule(this.datatype);
+    this.science = new ScienceModule(utils, this.locales);
+    this.vehicle = new VehicleModule(utils, this.locales);
+    this.lorem = new LoremModule(this.datatype, this.locales);
     this.phone = new PhoneModule(utils, this.datatype);
     this.system = new SystemModule(utils, this.datatype, this.word);
     this.image = new ImageModule(this.datatype, this.word);
-    this.finance = new FinanceModule(utils, this.datatype);
-    this.animal = new AnimalModule(utils);
-    this.date = new DateModule(this.datatype, utils);
+    this.finance = new FinanceModule(utils, this.datatype, this.locales);
+    this.animal = new AnimalModule(utils, this.locales);
+    this.date = new DateModule(this.datatype, utils, this.locales);
     this.distribution = new DistributionModule(utils);
   }
 

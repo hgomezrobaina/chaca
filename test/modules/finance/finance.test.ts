@@ -5,13 +5,13 @@ describe("finance modules", () => {
   it("finance.transaction", () => {
     const result = modules.finance.transaction();
 
-    expect(modules.finance.constants.transactionTypes).include(result);
+    expect(modules.finance.constants.transactionTypes.en).include(result);
   });
 
   it("finance.subscriptionPlan", () => {
     const result = modules.finance.subscriptionPlan();
 
-    expect(modules.finance.constants.subscriptionPlans).include(result);
+    expect(modules.finance.constants.subscriptionPlans.en).include(result);
   });
 
   it("finance.litecoinAddress", () => {
@@ -121,9 +121,9 @@ describe("finance modules", () => {
   it("finance.currencyMoneyName", () => {
     const value = modules.finance.currencyMoneyName();
 
-    expect(
-      Object.values(modules.finance.constants.moneyInfo).map((el) => el.name),
-    ).toContain(value);
+    expect(Object.values(modules.finance.constants.currencyNames.en)).toContain(
+      value,
+    );
   });
 
   it("finance.creditCardCVV", () => {
@@ -141,6 +141,6 @@ describe("finance modules", () => {
   it("finance.accountType", () => {
     const value = modules.finance.accountType();
 
-    expect(modules.finance.constants.accountTypes).toContain(value);
+    expect(modules.finance.constants.accountTypes.en).toContain(value);
   });
 });

@@ -1,13 +1,9 @@
 import { ChacaUtils } from "../../core/utils";
 import { DatatypeModule } from "../datatype";
-import {
-  CSSSpace,
-  CSS_FUNCTIONS,
-  CSS_SPACES,
-  CSSFunction,
-  HUMAN_COLORS,
-} from "./constants";
+import { CSSSpace, CSS_FUNCTIONS, CSS_SPACES, CSSFunction } from "./constants";
 import { Casing, ColorFormat, toColorFormat, formatHexColor } from "./helpers";
+import { LanguageProps } from "../../core/locale/language";
+import { LocaleCategoryResolver } from "../../core/locale/locale-category-resolver";
 
 export type RgbProps = {
   prefix?: string;
@@ -38,22 +34,31 @@ export class ColorModule {
   constructor(
     private readonly utils: ChacaUtils,
     private readonly datatypeModule: DatatypeModule,
+    private readonly locales: LocaleCategoryResolver,
   ) {}
 
-  readonly constants = {
-    cssFunctions: CSS_FUNCTIONS,
-    cssSpaces: CSS_SPACES,
-    human: HUMAN_COLORS,
-  };
+  get constants() {
+    return {
+      cssFunctions: CSS_FUNCTIONS,
+      cssSpaces: CSS_SPACES,
+      human: this.locales.byLanguage((locale) => locale.color.human),
+    };
+  }
 
   /**
-   * Returns a random human-readable color name.
+   * Returns a random human-readable color name from a registered locale.
    *
+   * @param args.language Locale to read from. Defaults `en`
    * @example
    * modules.color.human() // 'blue'
    */
-  human(): string {
-    return this.utils.oneOfArray(HUMAN_COLORS);
+  human({ language }: LanguageProps = {}): string {
+    const human = this.locales.execute({
+      language,
+      select: (locale) => locale.color.human,
+    });
+
+    return this.utils.oneOfArray(human);
   }
 
   /**

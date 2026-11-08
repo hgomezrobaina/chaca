@@ -23,7 +23,7 @@ describe("# Address module test", () => {
 
   it("address.cardinalDirection", () => {
     const value = modules.address.cardinalDirection();
-    const constants = modules.address.constants.cardinalDirections;
+    const constants = modules.address.constants.cardinalDirections.en;
 
     expect(constants.includes(value)).toBe(true);
   });
@@ -45,7 +45,7 @@ describe("# Address module test", () => {
   it("address.ordinalDirection", () => {
     const value = modules.address.ordinalDirection();
 
-    expect(modules.address.constants.ordinalDirection.includes(value)).toBe(
+    expect(modules.address.constants.ordinalDirection.en.includes(value)).toBe(
       true,
     );
   });
@@ -91,7 +91,7 @@ describe("# Address module test", () => {
   describe("address.country tests", () => {
     it("no params. should return any country", () => {
       const value = modules.address.country();
-      const countries = modules.address.constants.countries.map(
+      const countries = modules.address.constants.countries.en.map(
         (c) => c.country,
       );
       expect(countries.includes(value)).toBe(true);
@@ -99,7 +99,7 @@ describe("# Address module test", () => {
 
     it("continent = 'Europe'. should return a europe country", () => {
       const value = modules.address.country({ continent: "Europe" });
-      const countries = modules.address.constants.countries
+      const countries = modules.address.constants.countries.en
         .filter((c) => c.continent === "Europe")
         .map((c) => c.country);
       expect(countries.includes(value)).toBe(true);
@@ -107,7 +107,7 @@ describe("# Address module test", () => {
 
     it("continent = 'Oceania'. should return an oceania country", () => {
       const value = modules.address.country({ continent: "Oceania" });
-      const countries = modules.address.constants.countries
+      const countries = modules.address.constants.countries.en
         .filter((c) => c.continent === "Oceania")
         .map((c) => c.country);
       expect(countries.includes(value)).toBe(true);
@@ -115,7 +115,7 @@ describe("# Address module test", () => {
 
     it("continent = 'Antarctica'. should return an antarctica country", () => {
       const value = modules.address.country({ continent: "Antarctica" });
-      const countries = modules.address.constants.countries
+      const countries = modules.address.constants.countries.en
         .filter((c) => c.continent === "Antarctica")
         .map((c) => c.country);
       expect(countries.includes(value)).toBe(true);
@@ -123,7 +123,7 @@ describe("# Address module test", () => {
 
     it("country = no valid country. should return any country", () => {
       const value = modules.address.country({ continent: "hi" as any });
-      const countries = modules.address.constants.countries.map(
+      const countries = modules.address.constants.countries.en.map(
         (c) => c.country,
       );
       expect(countries.includes(value)).toBe(true);

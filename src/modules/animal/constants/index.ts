@@ -10,7 +10,6 @@ import { LION } from "./lion";
 import { RABBIT } from "./rabbit";
 import { RODENT } from "./rodent";
 import { SNAKE } from "./snake";
-import { ANIMAL_TYPE } from "./type";
 import { BIRD } from "./bird";
 import { FISH } from "./fish";
 
@@ -28,6 +27,5 @@ export {
   RABBIT,
   RODENT,
   SNAKE,
-  ANIMAL_TYPE,
   FISH,
 };

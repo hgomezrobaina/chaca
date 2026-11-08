@@ -7,7 +7,7 @@ describe("# Color modules tests", () => {
   it("color.human", () => {
     const value = modules.color.human();
 
-    expect(modules.color.constants.human).include(value);
+    expect(modules.color.constants.human.en).include(value);
   });
 
   it("color.cssSupportedFunction", () => {

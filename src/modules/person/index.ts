@@ -1,7 +1,5 @@
-import { GENDERS, JOBS, LANGUAGES, PREFIXES } from "./constants";
 import { ChacaUtils } from "../../core/utils";
 import { DatatypeModule } from "../datatype";
-import { ZODIAC_SIGN } from "./constants/zodiac";
 import { Language, LanguageProps } from "../../core/locale/language";
 import { LocaleCategoryResolver } from "../../core/locale/locale-category-resolver";
 import { PersonLocale } from "../../core/locale/locale";
@@ -12,14 +10,15 @@ export type NameProps = LanguageProps & {
   sex?: Sex;
 };
 
-export type SexProps = {
+export type SexProps = LanguageProps & {
   sex?: Sex;
 };
 
 export class PersonModule {
   /** The `male` + `female` lists joined, built once instead of on every call. */
   private readonly namesCache = new WeakMap<PersonLocale, string[]>();
-  private prefixesCache?: string[];
+  /** Same memoization as `namesCache`, per registered locale's prefixes. */
+  private readonly prefixesCache = new WeakMap<PersonLocale, string[]>();
 
   constructor(
     private readonly utils: ChacaUtils,
@@ -29,9 +28,9 @@ export class PersonModule {
 
   get constants() {
     return {
-      jobLevels: JOBS.JOB_LEVELS,
-      jobAreas: JOBS.JOBS_AREAS,
-      genders: GENDERS,
+      jobLevels: this.locales.byLanguage((locale) => locale.person.jobLevels),
+      jobAreas: this.locales.byLanguage((locale) => locale.person.jobAreas),
+      genders: this.locales.byLanguage((locale) => locale.person.genders),
       names: this.locales.byLanguage((locale) => {
         return {
           male: locale.person.male,
@@ -39,57 +38,90 @@ export class PersonModule {
           lastNames: locale.person.lastNames,
         };
       }),
-      languages: LANGUAGES,
-      prefixes: PREFIXES,
-      zodiacSigns: ZODIAC_SIGN,
-      sexs: ["Male", "Female"],
+      languages: this.locales.byLanguage((locale) => locale.person.languages),
+      prefixes: this.locales.byLanguage((locale) => locale.person.prefixes),
+      zodiacSigns: this.locales.byLanguage((locale) => {
+        return locale.person.zodiacSigns;
+      }),
+      sexs: this.locales.byLanguage((locale) => locale.person.sexs),
     };
   }
 
   /**
+   * Returns a language name from a registered locale.
+   * @param args.language Locale to read from. Defaults `en`
    * @example
    * modules.person.language() // 'Georgian'
    *
    * @returns string
    */
-  language(): string {
-    return this.utils.oneOfArray(this.constants.languages);
+  language({ language }: LanguageProps = {}): string {
+    const languages = this.locales.execute({
+      language,
+      select: (locale) => locale.person.languages,
+    });
+
+    return this.utils.oneOfArray(languages);
   }
 
   /**
-   * Returns a Job Level
+   * Returns a Job Level from a registered locale.
+   * @param args.language Locale to read from. Defaults `en`
    * @example modules.person.jobLevel() // 'Investor'
    * @returns string
    */
-  jobLevel(): string {
-    return this.utils.oneOfArray(JOBS.JOB_LEVELS);
+  jobLevel({ language }: LanguageProps = {}): string {
+    const jobLevels = this.locales.execute({
+      language,
+      select: (locale) => locale.person.jobLevels,
+    });
+
+    return this.utils.oneOfArray(jobLevels);
   }
 
   /**
-   * Returns a Job Area
+   * Returns a Job Area from a registered locale.
+   * @param args.language Locale to read from. Defaults `en`
    * @example modules.person.jobArea() // 'Supervisor'
    * @returns string
    */
-  jobArea(): string {
-    return this.utils.oneOfArray(JOBS.JOBS_AREAS);
+  jobArea({ language }: LanguageProps = {}): string {
+    const jobAreas = this.locales.execute({
+      language,
+      select: (locale) => locale.person.jobAreas,
+    });
+
+    return this.utils.oneOfArray(jobAreas);
   }
 
   /**
-   * Returns a person gender
+   * Returns a person gender from a registered locale.
+   * @param args.language Locale to read from. Defaults `en`
    * @example modules.person.gender() // 'Bigender'
    * @returns string
    */
-  gender(): string {
-    return this.utils.oneOfArray(this.constants.genders);
+  gender({ language }: LanguageProps = {}): string {
+    const genders = this.locales.execute({
+      language,
+      select: (locale) => locale.person.genders,
+    });
+
+    return this.utils.oneOfArray(genders);
   }
 
   /**
-   * Returns a person sex
+   * Returns a person sex from a registered locale.
+   * @param args.language Locale to read from. Defaults `en`
    * @example modules.person.sex() // 'Male'
    * @returns `Male` | `Female`
    */
-  sex(): string {
-    return this.utils.oneOfArray(this.constants.sexs);
+  sex({ language }: LanguageProps = {}): string {
+    const sexs = this.locales.execute({
+      language,
+      select: (locale) => locale.person.sexs,
+    });
+
+    return this.utils.oneOfArray(sexs);
   }
 
   /**
@@ -147,38 +179,50 @@ export class PersonModule {
   }
 
   /**
-   * Returns a random zodiac sign.
+   * Returns a random zodiac sign from a registered locale.
    *
+   * @param args.language Locale to read from. Defaults `en`
    * @example
    * modules.person.zodiacSign() // 'Pisces'
    */
-  zodiacSign(): string {
-    return this.utils.oneOfArray(ZODIAC_SIGN);
+  zodiacSign({ language }: LanguageProps = {}): string {
+    const zodiacSigns = this.locales.execute({
+      language,
+      select: (locale) => locale.person.zodiacSigns,
+    });
+
+    return this.utils.oneOfArray(zodiacSigns);
   }
 
   /**
-   * Returns a random name prefix
+   * Returns a random name prefix from a registered locale.
    * @param args.sex Sex of the person. (`male` | `female`)
+   * @param args.language Locale to read from. Defaults `en`
    * @example modules.person.prefix() // 'Ms.'
    * @returns string
    */
-  prefix({ sex }: SexProps = {}): string {
+  prefix({ sex, language }: SexProps = {}): string {
+    const person = this.locales.execute({
+      language,
+      select: (locale) => locale.person,
+    });
+
     if (sex === "male" || sex === "female") {
-      return this.utils.oneOfArray(this.constants.prefixes[sex]);
+      return this.utils.oneOfArray(person.prefixes[sex]);
     }
 
-    return this.utils.oneOfArray(this.allPrefixes());
+    return this.utils.oneOfArray(this.allPrefixes(person));
   }
 
-  private allPrefixes(): string[] {
-    if (!this.prefixesCache) {
-      this.prefixesCache = [
-        ...this.constants.prefixes.male,
-        ...this.constants.prefixes.female,
-      ];
-    }
+  private allPrefixes(person: PersonLocale): string[] {
+    const cached = this.prefixesCache.get(person);
 
-    return this.prefixesCache;
+    if (cached) return cached;
+
+    const all = [...person.prefixes.male, ...person.prefixes.female];
+    this.prefixesCache.set(person, all);
+
+    return all;
   }
 
   private names(language: Language | undefined): PersonLocale {

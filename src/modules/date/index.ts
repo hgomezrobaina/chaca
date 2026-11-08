@@ -1,8 +1,8 @@
 import { ChacaUtils } from "../../core/utils";
 import { ChacaError } from "../../errors";
 import { DatatypeModule } from "../datatype";
-import { MONTHS } from "./constants/month";
-import { WEEKDAYS } from "./constants/weekday";
+import { LanguageProps } from "../../core/locale/language";
+import { LocaleCategoryResolver } from "../../core/locale/locale-category-resolver";
 
 export type ArgDate = Date | string;
 
@@ -32,7 +32,7 @@ export type BirthDateProps = {
 export type TimeUnits =
   "years" | "seconds" | "minutes" | "days" | "hours" | "months";
 
-export type TimeAgoProps = {
+export type TimeAgoProps = LanguageProps & {
   unit?: TimeUnits;
 };
 
@@ -45,12 +45,15 @@ export class DateModule {
   constructor(
     private readonly datatypeModule: DatatypeModule,
     private readonly utils: ChacaUtils,
+    private readonly locales: LocaleCategoryResolver,
   ) {}
 
-  readonly constants = {
-    weekDays: WEEKDAYS,
-    months: MONTHS,
-  };
+  get constants() {
+    return {
+      weekDays: this.locales.byLanguage((locale) => locale.date.weekDays),
+      months: this.locales.byLanguage((locale) => locale.date.months),
+    };
+  }
 
   /**
    * Returns a date in the near future.
@@ -147,21 +150,33 @@ export class DateModule {
   }
 
   /**
-   * Returns a month name
+   * Returns a month name from a registered locale.
+   * @param args.language Locale to read from. Defaults `en`
    * @example modules.date.month() // 'February'
    * @returns string
    */
-  month(): string {
-    return this.utils.oneOfArray(MONTHS);
+  month({ language }: LanguageProps = {}): string {
+    const months = this.locales.execute({
+      language,
+      select: (locale) => locale.date.months,
+    });
+
+    return this.utils.oneOfArray(months);
   }
 
   /**
-   * Returns a weekday name
+   * Returns a weekday name from a registered locale.
+   * @param args.language Locale to read from. Defaults `en`
    * @example modules.date.weekDay() // 'Monday'
    * @returns string
    */
-  weekDay(): string {
-    return this.utils.oneOfArray(WEEKDAYS);
+  weekDay({ language }: LanguageProps = {}): string {
+    const weekDays = this.locales.execute({
+      language,
+      select: (locale) => locale.date.weekDays,
+    });
+
+    return this.utils.oneOfArray(weekDays);
   }
 
   /**
@@ -281,53 +296,54 @@ export class DateModule {
   }
 
   /**
-   * Returns a string with a time ago information
+   * Returns a string with a time ago information, phrased with a registered
+   * locale's wording and word order.
    * @param args.unit Date time unit. Can be (`"years"` | `"seconds"` | `"minutes"` | `"days"` | `"hours"` | `"months"`)
+   * @param args.language Locale to read the wording from. Defaults `en`
    * @example modules.date.timeAgo({ unit: 'days' }) // '20 days ago'
    * @returns string
    */
-  timeAgo({ unit: iunit }: TimeAgoProps = {}) {
-    const units = ["years", "seconds", "minutes", "days", "hours", "months"];
+  timeAgo({ unit: iunit, language }: TimeAgoProps = {}): string {
+    const units: TimeUnits[] = [
+      "years",
+      "seconds",
+      "minutes",
+      "days",
+      "hours",
+      "months",
+    ];
 
-    const unit =
+    const unit: TimeUnits =
       typeof iunit === "string" ? iunit : this.utils.oneOfArray(units);
 
+    const amount = this.datatypeModule.int(this.timeAgoRange(unit));
+
+    const dateLocale = this.locales.execute({
+      language,
+      select: (locale) => locale.date,
+    });
+
+    return dateLocale.timeAgoTemplate
+      .replace("{amount}", `${amount}`)
+      .replace("{unit}", dateLocale.timeAgoUnits[unit]);
+  }
+
+  private timeAgoRange(unit: TimeUnits): { min: number; max: number } {
     switch (unit) {
       case "days":
-        return `${this.datatypeModule.int({
-          min: 1,
-          max: 30,
-        })} ${unit} ago`;
+        return { min: 1, max: 30 };
       case "hours":
-        return `${this.datatypeModule.int({
-          min: 1,
-          max: 23,
-        })} ${unit} ago`;
+        return { min: 1, max: 23 };
       case "minutes":
-        return `${this.datatypeModule.int({
-          min: 1,
-          max: 59,
-        })} ${unit} ago`;
+        return { min: 1, max: 59 };
       case "seconds":
-        return `${this.datatypeModule.int({
-          min: 1,
-          max: 59,
-        })} ${unit} ago`;
+        return { min: 1, max: 59 };
       case "years":
-        return `${this.datatypeModule.int({
-          min: 1,
-          max: 40,
-        })} ${unit} ago`;
+        return { min: 1, max: 40 };
       case "months":
-        return `${this.datatypeModule.int({
-          min: 1,
-          max: 11,
-        })} ${unit} ago`;
+        return { min: 1, max: 11 };
       default:
-        return `${this.datatypeModule.int({
-          min: 1,
-          max: 60,
-        })} ${unit} ago`;
+        return { min: 1, max: 60 };
     }
   }
 

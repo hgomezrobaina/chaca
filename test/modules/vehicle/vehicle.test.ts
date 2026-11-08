@@ -4,7 +4,7 @@ import { modules } from "../../../src";
 describe("vehicle modules", () => {
   it("vehicle.bicycle", () => {
     const value = modules.vehicle.bicycle();
-    expect(modules.vehicle.constants.bicycles).include(value);
+    expect(modules.vehicle.constants.bicycles.en).include(value);
   });
 
   it("vehicle.manufacturer", () => {
@@ -19,12 +19,12 @@ describe("vehicle modules", () => {
 
   it("vehicle.type", () => {
     const value = modules.vehicle.type();
-    expect(modules.vehicle.constants.vehicleTypes).include(value);
+    expect(modules.vehicle.constants.vehicleTypes.en).include(value);
   });
 
   it("vehicle.fuel", () => {
     const value = modules.vehicle.fuel();
-    expect(modules.vehicle.constants.fuels).include(value);
+    expect(modules.vehicle.constants.fuels.en).include(value);
   });
 
   it("vehicle.vehicle", () => {
