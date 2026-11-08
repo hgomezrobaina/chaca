@@ -9,15 +9,17 @@ export type ZipCodeProps = {
   format?: string;
 };
 
+export type Continent =
+  | "Asia"
+  | "Africa"
+  | "Oceania"
+  | "Europe"
+  | "South America"
+  | "North America"
+  | "Antarctica";
+
 export type CountryProps = {
-  continent?:
-    | "Asia"
-    | "Africa"
-    | "Oceania"
-    | "Europe"
-    | "South America"
-    | "North America"
-    | "Antarctica";
+  continent?: Continent;
 };
 
 export type LatitudeProps = {

@@ -16,8 +16,19 @@ import { WordModule } from "./word";
 import { ColorModule } from "./color";
 import { DistributionModule } from "./distribution";
 import { ChacaUtils } from "../core/utils";
+import { LocaleRegistry } from "../core/locale/locale-registry";
+import { LocaleDefinition } from "../core/locale/locale";
 
 export class ChacaModules {
+  /**
+   * One registry per instance, not per process: two `ChacaModules` (two
+   * tests, or a library build and the server that embeds it) each keep their
+   * own registered locales, and never leak into one another. Read by the
+   * localizable modules through their own `LocaleCategoryResolver`, wired in
+   * as each module is migrated to it.
+   */
+  private readonly registry = new LocaleRegistry();
+
   readonly internet: InternetModule;
   readonly datatype: DatatypeModule;
   readonly id: IdModule;
@@ -59,5 +70,14 @@ export class ChacaModules {
     this.animal = new AnimalModule(utils);
     this.date = new DateModule(this.datatype, utils);
     this.distribution = new DistributionModule(utils);
+  }
+
+  /**
+   * Registers a locale so every method that accepts `language` can return
+   * its data. Registering the same code twice replaces the previous locale;
+   * nothing is registered by default beyond the built-in `en`.
+   */
+  registerLocale(locale: LocaleDefinition): void {
+    this.registry.register(locale);
   }
 }

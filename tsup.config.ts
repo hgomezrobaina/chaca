@@ -10,9 +10,11 @@ const shared: Options = {
 
 export default defineConfig([
   // Node.js library (default entry). Includes the filesystem-based export.
+  // Each locale is its own entry, so `chaca/locale/es` builds (and tree-shakes)
+  // separately from the rest of the package instead of always shipping inside it.
   {
     ...shared,
-    entry: { index: "src/index.ts" },
+    entry: { index: "src/index.ts", "locale/en": "src/locales/en/index.ts" },
     outDir: "dist",
     format: ["cjs", "esm"],
     platform: "node",
@@ -24,7 +26,10 @@ export default defineConfig([
   // tree-shaken away and the bundle is free of any Node built-in.
   {
     ...shared,
-    entry: { index: "src/browser.ts" },
+    entry: {
+      index: "src/browser.ts",
+      "locale/en": "src/locales/en/index.ts",
+    },
     outDir: "dist/browser",
     format: ["cjs", "esm"],
     platform: "browser",

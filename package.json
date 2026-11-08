@@ -24,6 +24,21 @@
       },
       "default": "./dist/index.mjs"
     },
+    "./locale/*": {
+      "types": "./dist/locale/*.d.ts",
+      "browser": {
+        "types": "./dist/browser/locale/*.d.ts",
+        "import": "./dist/browser/locale/*.mjs",
+        "require": "./dist/browser/locale/*.js",
+        "default": "./dist/browser/locale/*.mjs"
+      },
+      "node": {
+        "types": "./dist/locale/*.d.ts",
+        "import": "./dist/locale/*.mjs",
+        "require": "./dist/locale/*.js"
+      },
+      "default": "./dist/locale/*.mjs"
+    },
     "./package.json": "./package.json"
   },
   "bin": {
