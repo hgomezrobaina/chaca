@@ -1,4 +1,5 @@
 import { chaca, modules } from "../../../../src";
+import { FindRef } from "../../core/find-ref";
 import { SupportTicketStatus } from "../types";
 
 export const SUPPORT_TICKET_SCHEMA = chaca.schema({
@@ -15,13 +16,13 @@ export const SUPPORT_TICKET_SCHEMA = chaca.schema({
   ]),
   created_at: async ({ currentFields, store }) => {
     const orders = await store.get("Order");
-    const found = orders.find((o) => o.id === currentFields.order_id);
+    const order = FindRef.execute({
+      documents: orders,
+      id: currentFields.order_id,
+      from: "SupportTicket.order_id",
+    });
 
-    if (found) {
-      return modules.date.between({ from: found.order_date, to: new Date() });
-    }
-
-    return modules.date.past();
+    return modules.date.between({ from: order.order_date, to: new Date() });
   },
   close_date: ({ currentFields }) => {
     if (currentFields.status === SupportTicketStatus.Closed) {

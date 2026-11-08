@@ -1,4 +1,5 @@
 import { chaca, modules } from "../../../../src";
+import { FindRef } from "../../core/find-ref";
 import { CrewRole } from "../types";
 
 export const FLIGHT_CREW_SCHEMA = chaca.schema({
@@ -18,8 +19,16 @@ export const FLIGHT_CREW_SCHEMA = chaca.schema({
       const aircrafts = await store.get("Aircraft");
       const crew = await store.get("CrewMember");
 
-      const flight = flights.find((f) => f.id === currentFields.flight_id);
-      const aircraft = aircrafts.find((a) => a.id === flight.aircraft_id);
+      const flight = FindRef.execute({
+        documents: flights,
+        id: currentFields.flight_id,
+        from: "FlightCrew.flight_id",
+      });
+      const aircraft = FindRef.execute({
+        documents: aircrafts,
+        id: flight.aircraft_id,
+        from: "Flight.aircraft_id",
+      });
 
       if (refFields.airline_id !== aircraft.airline_id) {
         return false;

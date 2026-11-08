@@ -1,4 +1,5 @@
 import { chaca, modules } from "../../../../src";
+import { FindRef } from "../../core/find-ref";
 import { AircraftStatus, FlightStatus } from "../types";
 
 export const FLIGHT_SCHEMA = chaca.schema({
@@ -16,7 +17,11 @@ export const FLIGHT_SCHEMA = chaca.schema({
   },
   arrival: async ({ currentFields, store }) => {
     const routes = await store.get("Route");
-    const route = routes.find((r) => r.id === currentFields.route_id);
+    const route = FindRef.execute({
+      documents: routes,
+      id: currentFields.route_id,
+      from: "Flight.route_id",
+    });
 
     return new Date(
       currentFields.departure.getTime() + route.duration_min * 60 * 1000,
@@ -44,13 +49,13 @@ export const FLIGHT_SCHEMA = chaca.schema({
     nullOnEmpty: true,
     where: async ({ refFields, currentFields, store }) => {
       const routes = await store.get("Route");
-      const route = routes.find((r) => r.id === currentFields.route_id);
+      const route = FindRef.execute({
+        documents: routes,
+        id: currentFields.route_id,
+        from: "Flight.route_id",
+      });
 
-      if (route) {
-        return refFields.airport_id === route.origin_airport_id;
-      }
-
-      return false;
+      return refFields.airport_id === route.origin_airport_id;
     },
   }),
   status: ({ currentFields }) => {

@@ -1,4 +1,5 @@
 import { chaca, modules } from "../../../../src";
+import { FindRef } from "../../core/find-ref";
 import {
   PaymentConcept,
   PaymentMethod,
@@ -48,13 +49,23 @@ export const PAYMENT_SCHEMA = chaca.schema({
     const courses = await store.get("Course");
     const programs = await store.get("Program");
 
-    const rfound = registrations.find(
-      (r) => r.id === currentFields.registration_id,
-    );
-    const cfound = courses.find((c) => c.id === rfound.course_id);
-    const cprogram = programs.find((p) => p.id === cfound.program_id);
+    const registration = FindRef.execute({
+      documents: registrations,
+      id: currentFields.registration_id,
+      from: "Payment.registration_id",
+    });
+    const course = FindRef.execute({
+      documents: courses,
+      id: registration.course_id,
+      from: "Registration.course_id",
+    });
+    const program = FindRef.execute({
+      documents: programs,
+      id: course.program_id,
+      from: "Course.program_id",
+    });
 
-    return cprogram.cost;
+    return program.cost;
   },
   created_at: () => modules.date.past(),
 });

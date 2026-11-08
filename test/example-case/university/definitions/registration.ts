@@ -1,4 +1,5 @@
 import { chaca, modules } from "../../../../src";
+import { FindRef } from "../../core/find-ref";
 import { RegistrationStatus } from "../types";
 
 export const REGISTRATION_SCHEMA = chaca.schema({
@@ -26,13 +27,13 @@ export const REGISTRATION_SCHEMA = chaca.schema({
         );
 
       for (const d of sameStudent) {
-        const course = (await store.get("Course")).find(
-          (c) => c.id === d.course_id,
-        );
+        const course = FindRef.execute({
+          documents: await store.get("Course"),
+          id: d.course_id,
+          from: "Registration.course_id",
+        });
 
-        if (course) {
-          count += course.credits;
-        }
+        count += course.credits;
       }
 
       if (count > 20) {

@@ -1,4 +1,5 @@
 import { chaca, modules } from "../../../../src";
+import { FindRef } from "../../core/find-ref";
 import { InvoiceStatus } from "../types";
 
 export const INVOICE_SCHEMA = chaca.schema({
@@ -11,13 +12,17 @@ export const INVOICE_SCHEMA = chaca.schema({
   }),
   amount: async ({ currentFields, store }) => {
     const admissions = await store.get("Admission");
-    const admission = admissions.find(
-      (a) => a.id === currentFields.admission_id,
-    );
+    const admission = FindRef.execute({
+      documents: admissions,
+      id: currentFields.admission_id,
+      from: "Invoice.admission_id",
+    });
     const departments = await store.get("Department");
-    const department = departments.find(
-      (d) => d.id === admission.department_id,
-    );
+    const department = FindRef.execute({
+      documents: departments,
+      id: admission.department_id,
+      from: "Admission.department_id",
+    });
 
     const nights = Math.max(
       1,

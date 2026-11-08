@@ -1,4 +1,5 @@
 import { chaca, modules } from "../../../../src";
+import { FindRef } from "../../core/find-ref";
 import { OrderStatus, ShipmentStatus } from "../types";
 
 export const SHIPMENT_SCHEMA = chaca.schema({
@@ -10,12 +11,14 @@ export const SHIPMENT_SCHEMA = chaca.schema({
   },
   status: async ({ store, currentFields }) => {
     const orders = await store.get("Order");
-    const found = orders.find((o) => o.id === currentFields.order_id);
+    const order = FindRef.execute({
+      documents: orders,
+      id: currentFields.order_id,
+      from: "Shipment.order_id",
+    });
 
-    if (found) {
-      if (found.status === OrderStatus.Delivered) {
-        return ShipmentStatus.Delivered;
-      }
+    if (order.status === OrderStatus.Delivered) {
+      return ShipmentStatus.Delivered;
     }
 
     return chaca.utils.oneOfArray([
@@ -32,16 +35,16 @@ export const SHIPMENT_SCHEMA = chaca.schema({
       currentFields.status === ShipmentStatus.Returned
     ) {
       const orders = await store.get("Order");
-      const found = orders.find((o) => o.id === currentFields.order_id);
+      const order = FindRef.execute({
+        documents: orders,
+        id: currentFields.order_id,
+        from: "Shipment.order_id",
+      });
 
-      if (found) {
-        return modules.date.between({
-          from: found.order_date,
-          to: new Date(),
-        });
-      }
-
-      return modules.date.past();
+      return modules.date.between({
+        from: order.order_date,
+        to: new Date(),
+      });
     }
 
     return null;

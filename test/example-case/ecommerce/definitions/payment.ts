@@ -1,4 +1,5 @@
 import { chaca, modules } from "../../../../src";
+import { FindRef } from "../../core/find-ref";
 import { OrderStatus, PaymentMethod, PaymentStatus } from "../types";
 
 export const PAYMENT_SCHEMA = chaca.schema({
@@ -6,23 +7,23 @@ export const PAYMENT_SCHEMA = chaca.schema({
   order_id: chaca.ref("Order.id"),
   pay_date: async ({ currentFields, store }) => {
     const orders = await store.get("Order");
-    const found = orders.find((o) => o.id === currentFields.order_id);
+    const order = FindRef.execute({
+      documents: orders,
+      id: currentFields.order_id,
+      from: "Payment.order_id",
+    });
 
-    if (found) {
-      return modules.date.between({ from: found.order_date, to: new Date() });
-    }
-
-    return modules.date.past();
+    return modules.date.between({ from: order.order_date, to: new Date() });
   },
   amount: async ({ store, currentFields }) => {
     const orders = await store.get("Order");
-    const found = orders.find((o) => o.id === currentFields.order_id);
+    const order = FindRef.execute({
+      documents: orders,
+      id: currentFields.order_id,
+      from: "Payment.order_id",
+    });
 
-    if (found) {
-      return found.total;
-    }
-
-    return modules.datatype.float({ precision: 2, min: 10, max: 100 });
+    return order.total;
   },
   payment_method: chaca.enum([
     PaymentMethod.CreditCard,
@@ -32,23 +33,16 @@ export const PAYMENT_SCHEMA = chaca.schema({
   ]),
   status: async ({ currentFields, store }) => {
     const orders = await store.get("Order");
-    const found = orders.find((o) => o.id === currentFields.order_id);
+    const order = FindRef.execute({
+      documents: orders,
+      id: currentFields.order_id,
+      from: "Payment.order_id",
+    });
 
-    if (found) {
-      if (found.status === OrderStatus.Delivered) {
-        return PaymentStatus.Completed;
-      } else {
-        return chaca.utils.oneOfArray([
-          PaymentStatus.Pending,
-          PaymentStatus.Fail,
-        ]);
-      }
+    if (order.status === OrderStatus.Delivered) {
+      return PaymentStatus.Completed;
     }
 
-    return chaca.utils.oneOfArray([
-      PaymentStatus.Pending,
-      PaymentStatus.Completed,
-      PaymentStatus.Fail,
-    ]);
+    return chaca.utils.oneOfArray([PaymentStatus.Pending, PaymentStatus.Fail]);
   },
 });

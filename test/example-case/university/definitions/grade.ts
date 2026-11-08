@@ -1,4 +1,5 @@
 import { chaca, modules } from "../../../../src";
+import { FindRef } from "../../core/find-ref";
 import { GradeStatus, RegistrationStatus } from "../types";
 
 export const GRADE_SCHEMA = chaca.schema({
@@ -7,16 +8,18 @@ export const GRADE_SCHEMA = chaca.schema({
   final_grade: async ({ store, currentFields }) => {
     const registrations = await store.get("Registration");
 
-    const found = registrations.find(
-      (r) => r.id === currentFields.registration_id,
-    );
+    const registration = FindRef.execute({
+      documents: registrations,
+      id: currentFields.registration_id,
+      from: "Grade.registration_id",
+    });
 
     let min = 0;
     let max = 100;
 
-    if (found.status === RegistrationStatus.Approved) {
+    if (registration.status === RegistrationStatus.Approved) {
       min = 60;
-    } else if (found.status === RegistrationStatus.Failed) {
+    } else if (registration.status === RegistrationStatus.Failed) {
       max = 59;
     }
 

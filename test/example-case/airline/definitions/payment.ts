@@ -1,4 +1,5 @@
 import { chaca, modules } from "../../../../src";
+import { FindRef } from "../../core/find-ref";
 import { BookingStatus, PaymentMethod, PaymentStatus } from "../types";
 
 export const PAYMENT_SCHEMA = chaca.schema({
@@ -6,7 +7,11 @@ export const PAYMENT_SCHEMA = chaca.schema({
   booking_id: chaca.ref("Booking.id", { unique: true }),
   amount: async ({ currentFields, store }) => {
     const bookings = await store.get("Booking");
-    const booking = bookings.find((b) => b.id === currentFields.booking_id);
+    const booking = FindRef.execute({
+      documents: bookings,
+      id: currentFields.booking_id,
+      from: "Payment.booking_id",
+    });
 
     return booking.price;
   },
@@ -17,7 +22,11 @@ export const PAYMENT_SCHEMA = chaca.schema({
   ]),
   status: async ({ currentFields, store }) => {
     const bookings = await store.get("Booking");
-    const booking = bookings.find((b) => b.id === currentFields.booking_id);
+    const booking = FindRef.execute({
+      documents: bookings,
+      id: currentFields.booking_id,
+      from: "Payment.booking_id",
+    });
 
     if (booking.status === BookingStatus.Cancelled) {
       return PaymentStatus.Refunded;
@@ -30,7 +39,11 @@ export const PAYMENT_SCHEMA = chaca.schema({
   },
   created_at: async ({ currentFields, store }) => {
     const bookings = await store.get("Booking");
-    const booking = bookings.find((b) => b.id === currentFields.booking_id);
+    const booking = FindRef.execute({
+      documents: bookings,
+      id: currentFields.booking_id,
+      from: "Payment.booking_id",
+    });
 
     return modules.date.between({
       from: booking.booking_date,

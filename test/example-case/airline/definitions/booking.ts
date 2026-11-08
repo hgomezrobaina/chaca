@@ -1,4 +1,5 @@
 import { chaca, modules } from "../../../../src";
+import { FindRef } from "../../core/find-ref";
 import { BookingStatus, FlightStatus, SeatClass } from "../types";
 
 export const BOOKING_SCHEMA = chaca.schema({
@@ -14,7 +15,11 @@ export const BOOKING_SCHEMA = chaca.schema({
       }
 
       const aircrafts = await store.get("Aircraft");
-      const aircraft = aircrafts.find((a) => a.id === refFields.aircraft_id);
+      const aircraft = FindRef.execute({
+        documents: aircrafts,
+        id: refFields.aircraft_id,
+        from: "Flight.aircraft_id",
+      });
 
       const capacity =
         currentFields.seat_class === SeatClass.Business
@@ -49,8 +54,16 @@ export const BOOKING_SCHEMA = chaca.schema({
     const flights = await store.get("Flight");
     const routes = await store.get("Route");
 
-    const flight = flights.find((f) => f.id === currentFields.flight_id);
-    const route = routes.find((r) => r.id === flight.route_id);
+    const flight = FindRef.execute({
+      documents: flights,
+      id: currentFields.flight_id,
+      from: "Booking.flight_id",
+    });
+    const route = FindRef.execute({
+      documents: routes,
+      id: flight.route_id,
+      from: "Flight.route_id",
+    });
 
     const multiplier =
       currentFields.seat_class === SeatClass.Business ? 2.5 : 1;
@@ -59,7 +72,11 @@ export const BOOKING_SCHEMA = chaca.schema({
   },
   booking_date: async ({ currentFields, store }) => {
     const flights = await store.get("Flight");
-    const flight = flights.find((f) => f.id === currentFields.flight_id);
+    const flight = FindRef.execute({
+      documents: flights,
+      id: currentFields.flight_id,
+      from: "Booking.flight_id",
+    });
 
     const departure = flight.departure.getTime();
     const from = new Date(departure - 120 * 24 * 60 * 60 * 1000);
