@@ -23,26 +23,9 @@ This is the most feature-dense case: besides the patterns of the other cases it 
 | `Baggage`    | 250                     | `tag` via `chaca.sequence({ startsWith: 1000 })`; weight capped by class.  |
 | `Payment`    | one per booking         | `amount` mirrors the booking price; refunds for cancelled bookings.        |
 
-## Relationships
+## Schema
 
-```mermaid
-erDiagram
-    Airline ||--o{ Aircraft : airline_id
-    Airline ||--o{ CrewMember : airline_id
-    Airport ||--o{ Gate : airport_id
-    Airport ||--o{ Route : "origin_airport_id / destination_airport_id"
-    Route ||--o{ Flight : route_id
-    Aircraft ||--o{ Flight : aircraft_id
-    Gate |o--o{ Flight : "gate_id (nullOnEmpty)"
-    Flight ||--o{ FlightCrew : flight_id
-    CrewMember ||--o{ FlightCrew : crew_member_id
-    Passenger ||--o| Membership : "id (frequent flyers)"
-    Flight ||--o{ Booking : flight_id
-    Passenger ||--o{ Booking : passenger_id
-    Booking ||--o| CheckIn : "booking_id (unique)"
-    CheckIn ||--o{ Baggage : checkin_id
-    Booking ||--|| Payment : "booking_id (unique)"
-```
+See [schema.md](./schema.md) for the full ER diagram, a field-by-field table per entity and the rule table — generated from the schema definitions, never hand-written.
 
 ## Business rules encoded in the schemas
 

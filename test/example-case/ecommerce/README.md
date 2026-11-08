@@ -18,24 +18,9 @@ An online store: users buy products, orders are paid, shipped by transporters, a
 | `Shipment`        | 20                    | One per order (`order_id` unique ref).                          |
 | `SupportTicket`   | 20                    | Links client, employee and order.                               |
 
-## Relationships
+## Schema
 
-```mermaid
-erDiagram
-    User ||--o| Client : "id (role = client)"
-    User ||--o| Employee : "id (role = employee)"
-    ProductCategory ||--o{ Product : category_id
-    Client ||--o{ Order : client_id
-    Employee |o--o{ Order : employee_id
-    Order ||--o{ OrderDetail : order_id
-    Product ||--o{ OrderDetail : product_id
-    Order ||--o{ Payment : order_id
-    Order ||--o| Shipment : "order_id (unique)"
-    Transporter ||--o{ Shipment : transporter_id
-    Client ||--o{ SupportTicket : client_id
-    Employee ||--o{ SupportTicket : employee_id
-    Order ||--o{ SupportTicket : order_id
-```
+See [schema.md](./schema.md) for the full ER diagram, a field-by-field table per entity and the rule table — generated from the schema definitions, never hand-written.
 
 ## Business rules encoded in the schemas
 

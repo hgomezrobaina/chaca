@@ -17,22 +17,9 @@ A hospital: patients get admitted into departments, are assigned a bed, see doct
 | `Prescription`  | one per completed appointment       | Medication prescribed during a completed appointment.                    |
 | `Invoice`       | one per discharged admission        | Billed once the patient is discharged.                                  |
 
-## Relationships
+## Schema
 
-```mermaid
-erDiagram
-    Department ||--o{ Doctor : department_id
-    Department ||--o{ Room : department_id
-    Department ||--o{ Admission : department_id
-    Patient ||--o{ Admission : patient_id
-    Admission ||--|| BedAssignment : admission_id
-    Room ||--o{ BedAssignment : room_id
-    Doctor ||--o{ Appointment : doctor_id
-    Patient ||--o{ Appointment : patient_id
-    Appointment ||--o{ Prescription : appointment_id
-    Medication ||--o{ Prescription : medication_id
-    Admission ||--o| Invoice : admission_id
-```
+See [schema.md](./schema.md) for the full ER diagram, a field-by-field table per entity and the rule table — generated from the schema definitions, never hand-written.
 
 ## Business rules encoded in the schemas
 

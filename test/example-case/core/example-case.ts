@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
+import mermaid from "mermaid";
 import { chaca, DatasetSchema } from "../../../src";
 import { CaseRule } from "./case-rule";
+import { ColumnTypes } from "./schema/column-types";
+import { MermaidDiagram } from "./schema/mermaid-diagram";
+import { SchemaDocument } from "./schema/schema-document";
+import { SchemaReader } from "./schema/schema-reader";
 
 interface Props<K> {
   name: string;
@@ -33,6 +38,32 @@ export class ExampleCaseTest<K> {
           rule.check(data);
         });
       }
+
+      this.checkSchemaDocument(data);
+    });
+  }
+
+  private checkSchemaDocument(data: K): void {
+    const entities = SchemaReader.execute(this.schemas);
+    const columnTypes = ColumnTypes.execute({
+      entities,
+      data: data as Record<string, object[]>,
+    });
+    const diagram = MermaidDiagram.execute({ entities, columnTypes });
+    const document = SchemaDocument.execute({
+      caseName: this.name,
+      entities,
+      columnTypes,
+      rules: this.rules,
+      diagram,
+    });
+
+    it("the diagram is valid mermaid", async () => {
+      await mermaid.parse(diagram);
+    });
+
+    it("schema.md is up to date", async () => {
+      await expect(document).toMatchFileSnapshot("./schema.md");
     });
   }
 

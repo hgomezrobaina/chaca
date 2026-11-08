@@ -1,4 +1,5 @@
 import { chaca, modules } from "../../../../src";
+import { FindRef } from "../../core/find-ref";
 import { StudentStatus, UserRole } from "../types";
 
 export const STUDENT_SCHEMA = chaca.schema({
@@ -22,11 +23,12 @@ export const STUDENT_SCHEMA = chaca.schema({
   ]),
   actual_period: async ({ store, currentFields }) => {
     const programs = await store.get("Program");
+    const program = FindRef.execute({
+      documents: programs,
+      id: currentFields.program_id,
+      from: "Student.program_id",
+    });
 
-    const found = programs.find((p) => p.id === currentFields.program_id);
-
-    if (found) {
-      return modules.datatype.int({ min: 0, max: found.period_duration });
-    }
+    return modules.datatype.int({ min: 0, max: program.period_duration });
   },
 });

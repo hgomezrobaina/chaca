@@ -19,26 +19,9 @@ A university: students enroll in courses taught by teachers, get grades, pay for
 | `Book`         | 60                    | Library stock.                                                     |
 | `BookLoan`     | 30                    | A student borrowing a book.                                        |
 
-## Relationships
+## Schema
 
-```mermaid
-erDiagram
-    User ||--o| Student : "id (role = student)"
-    User ||--o| Teacher : "id (role = teacher)"
-    School ||--o{ Department : school_id
-    School |o--o{ Teacher : school_dean_id
-    Department ||--o{ Program : department_id
-    Department ||--o{ Teacher : department_id
-    Program ||--o{ Course : program_id
-    Program ||--o{ Student : program_id
-    Teacher ||--o{ Course : teacher_id
-    Student ||--o{ Registration : student_id
-    Course ||--o{ Registration : course_id
-    Registration ||--o| Grade : "registration_id (unique)"
-    Registration ||--o{ Payment : registration_id
-    Student ||--o{ BookLoan : student_id
-    Book ||--o{ BookLoan : book_id
-```
+See [schema.md](./schema.md) for the full ER diagram, a field-by-field table per entity and the rule table — generated from the schema definitions, never hand-written.
 
 ## Business rules encoded in the schemas
 
