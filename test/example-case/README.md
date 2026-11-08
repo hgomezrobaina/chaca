@@ -38,7 +38,19 @@ example-case/
     └── definitions/          # One chaca.schema per entity + definition.ts exporting <CASE>_SCHEMAS
 ```
 
-A rule is never just prose: `CaseRule.check` *is* its test, so a rule documented in `schema.md` without a passing assertion can't exist. `ExampleCaseTest` (in [core/example-case.ts](core/example-case.ts)) generates the dataset once, runs the meta-rules (unique rule ids, every `fields` entry pointing at a real field, every entity covered by at least one rule), runs each case rule as its own `it`, and finally regenerates `schema.md` and checks it's still valid mermaid and up to date with the schemas. The serialization of each format is covered by the content-based tests in `test/library/extensions`.
+A rule is never just prose: `CaseRule.check` *is* its test, so a rule documented in `schema.md` without a passing assertion can't exist. `ExampleCaseTest` (in [core/example-case.ts](core/example-case.ts)) generates the dataset once, runs the meta-rules (unique rule ids, every `fields` entry pointing at a real field, every entity covered by at least one rule), runs each case rule as its own `it`, regenerates `schema.md` and checks it's still valid mermaid and up to date with the schemas, and finally writes a generation report. The serialization of each format is covered by the content-based tests in `test/library/extensions`.
+
+### Running a single case
+
+```
+npx vitest run test/example-case/<case>
+```
+
+Every case is its own test file, so this generates and validates only that one case instead of all six.
+
+### The generation report
+
+Every case writes `data/cases/<slug>/report.md` on each run: row counts per entity, and per field the number of real nulls, distinct values, and (for numbers and dates) the minimum and maximum — computed on the data the rules already hold, never a second generation. It's not versioned (`data/` is in `.gitignore`); open it after a run to see the shape of what actually got generated, e.g. to spot a problem like "8 declared departments collapsing into 3 distinct names" without reading the raw data.
 
 ### Regenerating the documentation
 

@@ -23,30 +23,17 @@ A university: students enroll in courses taught by teachers, get grades, pay for
 
 See [schema.md](./schema.md) for the full ER diagram, a field-by-field table per entity and the rule table — generated from the schema definitions, never hand-written.
 
-## Business rules encoded in the schemas
+## Business rules
 
-- **Student/Teacher counts follow User roles**: same 1:1 "table inheritance" pattern as the ecommerce case.
-- **Student**: `birthdate` guarantees a minimum age of 16, `code` is a unique sequence, and `actual_period` never exceeds the program's `period_duration`.
-- **Teacher**: `school_dean_id` is `null` unless the teacher is `active`, and a `where` on the ref rejects any school that already has a dean — a school has at most one. **Modeling note**: the dean stays on `Teacher.school_dean_id` rather than moving to `School.dean_id`, because that direction would create the cycle `School → Teacher → Department → School` (a department belongs to a school, a teacher to a department, and a school's dean would be a teacher), which chaca rejects with `CyclicAccessDataError`.
-- **Course**: `code` is a unique sequence (not a random string); an active course can only be taught by an `active` teacher.
-- **Registration**: a student cannot enroll twice in the same course and period, cannot exceed 20 credits per period, and `registration_date` is derived from `period` (e.g. `2022-1` falls between January and June 2022), capped at the current date.
-- **Grade**: only exists for `approved`/`failed` registrations (`documents` counts them dynamically), `created_at` is on or after the registration's `registration_date`, and `final_grade` range depends on the registration status — `approved` ⇒ 60–100, `failed` ⇒ 0–59.
-- **Payment**: `registration_id` is a unique ref to `active` registrations, with a matching dynamic `documents` count — every active registration gets exactly one payment, never two. `amount` depends on `concept`: `registration` charges the program's cost (via the registration → course → program chain), `extra-course` charges the course's credits × a per-credit fee, `certificate` and `library` charge fixed fees (`definitions/fees.ts`).
-- **BookLoan**: `status` is generated before `book_id` so the stock check can use it; a book can be borrowed only while its open loans (`loan`/`late`) are fewer than its `count`; a student can hold at most 5 open loans; `return_date` only exists for `returned` loans and is always after the loan `date`.
+Every rule below has its own assertion in [rules.ts](rules.ts) (the full, field-level list is the generated "Rules" table in [schema.md](./schema.md)).
 
-## Validations (in [university.test.ts](university.test.ts))
-
-- Every active/approved/failed registration has exactly one grade or payment as appropriate, and a registration never has more than one of either.
-- Grade ranges match the registration status (`approved` ⇒ ≥ 60, `failed` ⇒ ≤ 59), and only `approved`/`failed` registrations have a grade.
-- `Grade.created_at` is on or after its registration's `registration_date`.
-- `Registration.registration_date` falls within the half-year its `period` names.
-- `Course.code` and `Student.code` are unique.
-- No student is registered twice in the same course and period, and no student exceeds 20 credits per period.
-- Courses have 1–10 credits, and active courses only have active teachers.
-- Every active registration has exactly one payment, and `amount` matches its `concept`.
-- Books always have non-negative stock, and the number of open loans (`loan`/`late`) for a book never exceeds its `count`.
-- A student has at most 5 open book loans, and returned loans have `return_date` > `date`.
-- `Student`/`Teacher` counts match users with the corresponding role.
-- Teachers who are not `active` have `school_dean_id = null`, and no school has more than one dean.
-- Programs last between 4 and 8 periods, and all students are at least 16 years old.
-- `actual_period` of a student never exceeds their program's `period_duration`.
+1. **`Student`/`Teacher` are a 1:1 extension of `User`** (`Student.id`, `Teacher.id`, `User.role`): same pattern as the ecommerce case's `Client`/`Employee`.
+2. **Student** (`Student.birthdate`, `.code`, `.actual_period`, `Program.period_duration`): at least 16 years old; `code` is a unique sequence; `actual_period` never exceeds the program's `period_duration`.
+3. **Teacher deanship** (`Teacher.school_dean_id`, `.status`): `null` unless the teacher is `active`; its ref rejects a school that already has a dean, so a school never has more than one. **Modeling note**: the dean stays on `Teacher.school_dean_id` rather than moving to `School.dean_id`, because that direction would close the cycle `School → Teacher → Department → School` (a department belongs to a school, a teacher to a department, and a school's dean would be a teacher), which chaca rejects with `CyclicAccessDataError`.
+4. **Course** (`Course.code`, `.credits`, `.teacher_id`, `Teacher.status`): `code` is a unique sequence (not a random string); `credits` is 1–10; an active course is only taught by an `active` teacher.
+5. **Registration** (`Registration.student_id`, `.course_id`, `.period`, `.registration_date`): a student never enrolls twice in the same course and period, nor exceeds 20 credits per period; `registration_date` is derived from `period` (e.g. `2022-1` falls between January and June 2022), capped at the current date.
+6. **`Grade` is a 1:1 extension of terminal registrations** (`Grade.registration_id`, `Registration.status`): a unique ref to `approved`/`failed` registrations, with a matching dynamic `documents` count.
+7. **`Grade` follows its registration** (`Grade.final_grade`, `.created_at`): range depends on status (`approved` ⇒ 60–100, `failed` ⇒ 0–59); `created_at` is on or after the registration's `registration_date`.
+8. **`Payment` is a 1:1 extension of active registrations** (`Payment.registration_id`, `Registration.status`): a unique ref to `active` registrations, with a matching dynamic `documents` count — every active registration gets exactly one payment, never two.
+9. **`Payment.amount` depends on `concept`** (`Payment.amount`, `.concept`): `registration` charges the program's cost (registration → course → program chain); `extra-course` charges the course's credits × a per-credit fee; `certificate` and `library` charge fixed fees (`definitions/fees.ts`).
+10. **`BookLoan`** (`BookLoan.status`, `.book_id`, `.student_id`, `.return_date`, `.date`, `Book.count`): a book is borrowed only while its open loans (`loan`/`late`) are fewer than its `count`; a student holds at most 5 open loans; `return_date` only exists for `returned` loans, and is after the loan `date`.

@@ -25,27 +25,17 @@ table with money involved (`Transfer.source_account_id` /
 
 See [schema.md](./schema.md) for the full ER diagram, a field-by-field table per entity and the rule table — generated from the schema definitions, never hand-written.
 
-## Business rules encoded in the schemas
+## Business rules
 
-- **Money uses `decimal.js`, never raw `number` arithmetic.** Every derived amount (`overdraft_limit`, transaction/transfer amounts, installment amounts, statement totals) is computed through a `Decimal`, rounded to 2 places before being stored. Rules compare amounts as 2-decimal strings (`.toFixed(2)`) with `toBe`, never `toBeCloseTo`.
-- **Account**: `overdraft_limit` is always `0` for `savings`, 0–1000 for `checking`, 0–5000 for `credit`. `opened_at` is on or after its customer's `created_at`.
-- **Transaction**: an account's first transaction is always a `deposit` (credit), so every account starts with a positive balance before any debit is possible. A `withdrawal`/`fee` is only chosen once the account's running balance plus its `overdraft_limit` leaves at least 50 of room, and its `amount` never exceeds that room — the mechanism that keeps R5 (no balance below `-overdraft_limit`) an actual invariant instead of a probabilistic hope.
-- **Transfer**: `source_account_id`'s `where` only accepts an `active` account that currently has at least 10 of room (its `Transaction` balance plus every other transfer already committed against it, plus its `overdraft_limit`); `destination_account_id`'s `where` rejects the source itself, non-`active` accounts, and a different currency. `amount` is capped by the source's room the same way `Transaction` caps a debit.
-- **TransferLeg**: `documents` is dynamic (2 × `Transfer.length`). `transfer_id`'s `where` only accepts a transfer that doesn't have both legs yet; `kind` is `debit` unless the transfer already has a debit leg, in which case it's `credit`; `account_id` and `amount` are derived from the transfer (source/destination, and its `amount`).
-- **Card**: `account_id`'s `where` rejects `savings` accounts.
-- **Loan**: `customer_id`'s `where` only accepts a `verified` customer.
-- **LoanInstallment**: `documents` is dynamic (the sum of every loan's `term_months`). `loan_id`'s `where` only accepts a loan that doesn't have all of its installments yet (a per-loan counter cached per document, the same "fewest/least assigned so far" family of pattern the hospital and airline cases use for performance). `number` is that loan's installment count so far, plus one. `amount` is the loan's principal plus simple interest over its term, divided evenly across `term_months`, with the **last** installment taking whatever the even division didn't — so the sum is exact by construction, never by chance.
-- **AccountStatement**: `id` is a unique ref to `Account.id` (the same 1:1 "table inheritance" pattern as `Client`/`Student`/`Teacher` in the other cases). `credits`/`debits` sum every `Transaction` and `TransferLeg` that touches the account; `balance` is their exact difference.
+Every rule below has its own assertion in [rules.ts](rules.ts) (the full, field-level list is the generated "Rules" table in [schema.md](./schema.md)).
 
-## Validations (in [banking.test.ts](banking.test.ts))
-
-- An account statement's `balance` equals `credits − debits` exactly (2-decimal string equality).
-- The global sum of `TransferLeg` debits equals the global sum of credits; every transfer has exactly one debit leg and one credit leg, each for its amount.
-- A transfer's source and destination accounts differ and share the same currency.
-- No account's balance falls below its (negative) `overdraft_limit`.
-- A loan's installments sum exactly to principal plus interest; their `due_date`s are monthly and consecutive; `number` runs 1..`term_months` without gaps or repeats.
-- No card belongs to a `savings` account.
-- Every transaction and transfer happens on or after its account's opening, which in turn is on or after its customer's `created_at`.
-- `document_number` and `iban` are each unique.
-- Only `verified` customers have loans.
-- Every account has exactly one statement.
+1. **Money uses `decimal.js`, never raw `number` arithmetic**: every derived amount (`overdraft_limit`, transaction/transfer amounts, installment amounts, statement totals) is computed through a `Decimal`, rounded to 2 places before being stored. Rules compare amounts as 2-decimal strings (`.toFixed(2)`) with `toBe`, never `toBeCloseTo`.
+2. **Account** (`Account.overdraft_limit`, `.type`, `.opened_at`, `Customer.created_at`): `overdraft_limit` is `0` for `savings`, 0–1000 for `checking`, 0–5000 for `credit`; `opened_at` is on or after its customer's `created_at`.
+3. **No balance goes below its overdraft** (`Transaction.kind`, `.direction`, `.amount`, `AccountStatement.balance`, `Account.overdraft_limit`): an account's first transaction is always a `deposit`; a `withdrawal`/`fee` is only chosen once the running balance plus `overdraft_limit` leaves at least 50 of room, and its `amount` never exceeds that room — the mechanism that keeps this an actual invariant instead of a probabilistic hope.
+4. **Transfer** (`Transfer.source_account_id`, `Account.status`, `Transfer.destination_account_id`, `.amount`, `Account.currency`): the source must be `active` with at least 10 of room; the destination excludes the source itself, non-`active` accounts, and a different currency; `amount` is capped by the source's room the same way a `Transaction` debit is.
+5. **TransferLeg is the double entry of a transfer** (`TransferLeg.transfer_id`, `.kind`, `.account_id`, `.amount`, `Transfer.amount`): `documents` is 2 × the number of transfers; each transfer gets exactly one `debit` leg (the source) and one `credit` leg (the destination), each for the transfer's `amount`; the global sum of debits equals the global sum of credits.
+6. **Card** (`Card.account_id`, `Account.type`): never belongs to a `savings` account.
+7. **`Loan` only for verified customers** (`Loan.customer_id`, `Customer.kyc_status`): `customer_id`'s ref only accepts a `verified` customer.
+8. **LoanInstallment sums exactly to principal plus interest** (`LoanInstallment.loan_id`, `.number`, `.due_date`, `.amount`, `Loan.principal`, `.annual_rate`, `.term_months`, `.granted_at`): `documents` is the sum of every loan's `term_months`; `number` runs 1..`term_months` without gaps or repeats; `due_date`s are monthly and consecutive; `amount` divides principal plus simple interest evenly, with the **last** installment taking whatever the even division didn't — so the sum is exact by construction, never by chance.
+9. **`AccountStatement` is a 1:1 extension of accounts** (`AccountStatement.id`, `.credits`, `.debits`, `.balance`, `Account.overdraft_limit`): the same 1:1 "table inheritance" pattern as `Client`/`Student`/`Teacher` in the other cases; `credits`/`debits` sum every `Transaction` and `TransferLeg` touching the account, and `balance` is their exact difference, never below the account's (negative) `overdraft_limit`.
+10. **Natural keys are unique** (`Customer.document_number`, `Account.iban`): each is globally unique.

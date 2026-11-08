@@ -22,22 +22,18 @@ An online store: users buy products, orders are paid, shipped by transporters, a
 
 See [schema.md](./schema.md) for the full ER diagram, a field-by-field table per entity and the rule table — generated from the schema definitions, never hand-written.
 
-## Business rules encoded in the schemas
+## Business rules
 
-- **Client/Employee counts follow User roles**: their `documents` count is computed from the generated `User` table, and their `id` is a unique ref to `User.id` filtered by role — a 1:1 "table inheritance" pattern.
-- **OrderDetail**: a product cannot be repeated within the same order, and the product must have been created before the order date. `unit_price` mirrors the referenced product's `price`.
-- **Modeling note — no `Order.total`**: chaca generates a schema's documents before the schemas that reference it, so `Order` is generated before `OrderDetail` and can never sum its own (not-yet-existing) lines. `Payment`, generated after both, carries the total instead: `amount` is the sum of the referenced order's `OrderDetail.subtotal`s.
-- **Payment**: `order_id` is a unique ref to non-canceled orders only, with a matching dynamic `documents` count, so every non-canceled order gets exactly one payment and canceled orders get none. If the referenced order is `delivered`, the payment status is forced to `completed`; otherwise it's `pending` or `fail`.
-- **Shipment**: `order_id` is a unique ref to `send`/`delivered` orders only (never a `canceled` one), with a matching dynamic `documents` count. Status follows the order (`delivered` order ⇒ `delivered` shipment); `send_date` only exists for shipments that left the warehouse, and `deliver_date` is always after `send_date`.
-- **SupportTicket**: `created_at` is always after the referenced order's date; `close_date` only exists when the ticket is `closed`, and is always after `created_at`.
-- **Temporal coherence**: products are at least 1 year old, orders happen within the last 6 months, and payments, shipments and support tickets always happen after their order.
+Every rule below has its own assertion in [rules.ts](rules.ts) (the full, field-level list is the generated "Rules" table in [schema.md](./schema.md)).
 
-## Validations (in [ecommerce.test.ts](ecommerce.test.ts))
-
-- `Client` count equals users with role `client`, and every client's `id` maps back to a user with that role (same for `Employee`).
-- Client levels follow the configured probability: `normal` clients outnumber `premium` and `vip`.
-- `Product`: `price` ≥ `cost`.
-- `OrderDetail`: distinct products within an order, `count` between 1 and 10, `unit_price` equals the referenced product's `price`, `subtotal = count × unit_price`, and the product was created before the order date.
-- `Payment`: `amount` equals the sum of its order's order detail subtotals, `pay_date` is after the order date, payments for `delivered` orders have status `completed`, every non-canceled order has exactly one payment, and canceled orders have none.
-- `Shipment`: at most one shipment per order, no canceled order has one, `delivered` order ⇒ `delivered` shipment, `send_date` only exists (and is after the order date) once the shipment left the warehouse, and `deliver_date` only exists for `delivered`/`returned` shipments and is after `send_date`.
-- `SupportTicket`: `created_at` is after the order date, and `close_date` only exists for `closed` tickets and is after `created_at`.
+1. **`Client`/`Employee` are a 1:1 extension of `User`** (`Client.id`, `Employee.id`, `User.role`): each is a unique ref to `User.id` filtered by role, with a `documents` count computed from the same filter.
+2. **Client tiers skew low** (`Client.level`): `normal` always outnumbers `premium` and `vip`.
+3. **Product pricing** (`Product.price`, `Product.cost`): `price` is never below `cost`.
+4. **Order lines are internally consistent** (`OrderDetail.product_id`, `.count`, `.unit_price`, `.subtotal`, `.order_id`, `Order.order_date`, `Product.created_at`): a product never repeats within the same order; `count` is 1–10; `unit_price` mirrors the product's `price`; `subtotal = count × unit_price`; the product predates the order.
+5. **Modeling note — no `Order.total`**: chaca generates a schema's documents before the schemas that reference it, so `Order` is generated before `OrderDetail` and can never sum its own, not-yet-existing lines. `Payment.amount` carries the total instead (rule 7).
+6. **`Payment` is a 1:1 extension of non-canceled orders** (`Payment.order_id`, `Order.status`): a unique ref to non-canceled orders, with a matching dynamic `documents` count — every non-canceled order gets exactly one payment, canceled orders get none.
+7. **`Payment` follows its order** (`Payment.amount`, `.status`, `.pay_date`): `amount` is the sum of the order's `OrderDetail.subtotal`s; a `delivered` order's payment is always `completed`; `pay_date` is on or after `order_date`.
+8. **`Shipment` is a 1:1 extension of shipped orders** (`Shipment.order_id`): a unique ref to orders that are `send` or `delivered`, with a matching dynamic `documents` count — a canceled order never gets one, and no order gets more than one.
+9. **`Shipment` follows its order** (`Shipment.status`, `.send_date`, `.deliver_date`): a `delivered` order's shipment is always `delivered`; `send_date` only exists once it left the warehouse, and is after the order date; `deliver_date` only exists for `delivered`/`returned` shipments, and is after `send_date`.
+10. **`SupportTicket` dates** (`.created_at`, `.close_date`, `.status`): `created_at` is on or after the order's date; `close_date` only exists once `closed`, and is after `created_at`.
+11. **Natural keys read like real ones** (`ProductCategory.name`, `Transporter.email`): a category's name is never empty; a transporter's email has the shape of an email address.
