@@ -90,3 +90,73 @@ describe("locale completeness: closed-set parity (HU-4, half of E2E-8/E2E-9)", (
     },
   );
 });
+
+/**
+ * An open-set category: every registered locale must reach its own minimum,
+ * `en` included — requirements.md regla 4 explicitly rejects exempting the
+ * language that happened to ship first.
+ */
+interface MinimumCheck {
+  name: string;
+  minimum: number;
+  values: (locale: LocaleDefinition) => string[];
+}
+
+const MINIMUM_CHECKS: MinimumCheck[] = [
+  { name: "word.nouns", minimum: 1500, values: (l) => l.word.nouns },
+  { name: "word.verbs", minimum: 300, values: (l) => l.word.verbs },
+  {
+    name: "word.adjectives",
+    minimum: 300,
+    values: (l) => l.word.adjectives,
+  },
+  { name: "word.adverbs", minimum: 100, values: (l) => l.word.adverbs },
+  {
+    name: "word.interjections",
+    minimum: 30,
+    values: (l) => l.word.interjections,
+  },
+  {
+    name: "word.prepositions",
+    minimum: 15,
+    values: (l) => l.word.prepositions,
+  },
+  {
+    name: "word.conjunctions",
+    minimum: 20,
+    values: (l) => l.word.conjunctions,
+  },
+  { name: "person.female", minimum: 200, values: (l) => l.person.female },
+  { name: "person.male", minimum: 200, values: (l) => l.person.male },
+  {
+    name: "person.lastNames",
+    minimum: 200,
+    values: (l) => l.person.lastNames,
+  },
+  { name: "lorem.words", minimum: 30, values: (l) => l.lorem.words },
+];
+
+const REGISTERED_LOCALES: { name: string; locale: LocaleDefinition }[] = [
+  { name: "en", locale: en },
+  { name: "es", locale: es },
+];
+
+describe("locale completeness: open-set minimums (HU-4, other half of E2E-8/E2E-9)", () => {
+  for (const { name: localeName, locale } of REGISTERED_LOCALES) {
+    it.each(MINIMUM_CHECKS)(
+      `${localeName}'s $name reaches its minimum`,
+      ({ minimum, values }) => {
+        expect(values(locale).length).toBeGreaterThanOrEqual(minimum);
+      },
+    );
+
+    it.each(MINIMUM_CHECKS)(
+      `${localeName}'s $name keeps its entries unique`,
+      ({ values }) => {
+        const entries = values(locale);
+
+        expect(entries.length).toBe(new Set(entries).size);
+      },
+    );
+  }
+});
