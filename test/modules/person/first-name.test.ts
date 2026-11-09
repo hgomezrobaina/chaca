@@ -22,8 +22,8 @@ describe("person.firstName", () => {
 
       const constants = modules.person.constants;
       const allNames = [
-        ...constants.names.es.female,
-        ...constants.names.es.male,
+        ...constants.names.es!.female,
+        ...constants.names.es!.male,
       ];
       const is = allNames.includes(value);
       expect(is).toBe(true);
@@ -62,7 +62,7 @@ describe("person.firstName", () => {
         sex: "male",
         language: Language.Spanish,
       });
-      const is = modules.person.constants.names.es.male.includes(value);
+      const is = modules.person.constants.names.es!.male.includes(value);
       expect(is).toBe(true);
     });
   });

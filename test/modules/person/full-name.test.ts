@@ -51,14 +51,14 @@ describe("person.fullName", () => {
       const value = modules.person.fullName({ language: Language.Spanish });
       const constants = modules.person.constants;
       const allNames = [
-        ...constants.names.es.female,
-        ...constants.names.es.male,
+        ...constants.names.es!.female,
+        ...constants.names.es!.male,
       ];
 
       expectNames({
         value,
         firstNames: allNames,
-        lastNames: constants.names.es.lastNames,
+        lastNames: constants.names.es!.lastNames,
       });
     });
 
@@ -99,12 +99,12 @@ describe("person.fullName", () => {
         language: Language.Spanish,
       });
       const constants = modules.person.constants;
-      const allNames = constants.names.es.male;
+      const allNames = constants.names.es!.male;
 
       expectNames({
         value,
         firstNames: allNames,
-        lastNames: constants.names.es.lastNames,
+        lastNames: constants.names.es!.lastNames,
       });
     });
   });

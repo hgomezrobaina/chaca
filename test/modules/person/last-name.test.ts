@@ -17,7 +17,7 @@ describe("person.lastName", () => {
   describe("language argument", () => {
     it("language = 'es'. should return one of the defined lastnames", () => {
       const value = modules.person.lastName({ language: Language.Spanish });
-      const is = modules.person.constants.names.es.lastNames.includes(value);
+      const is = modules.person.constants.names.es!.lastNames.includes(value);
 
       expect(is).toBe(true);
     });

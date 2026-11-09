@@ -8,6 +8,17 @@ interface ResolveProps<T> {
 }
 
 /**
+ * What `byLanguage` returns: `en` is always present (`LocaleRegistry`'s
+ * constructor guarantees it), every other locale is only there if it was
+ * registered. Typing it this way, instead of a uniform `Partial`, is what
+ * lets `modules.<module>.constants.<category>.en` read without a null
+ * check at every call site.
+ */
+export type LocaleCategoryMap<T> = Partial<Record<Language, T>> & {
+  [Language.English]: T;
+};
+
+/**
  * Resolves which locale's category a method should read. Pulled out of the
  * per-module `filterWords`/`filterNameByLanguage` methods that duplicated this
  * exact fallback, so every localizable method shares one rule: the requested
@@ -34,10 +45,10 @@ export class LocaleCategoryResolver {
    * never registered has no key here, which is what keeps `modules.<x>.constants`
    * honest about what is actually loaded.
    */
-  byLanguage<T>(
-    select: (locale: LocaleDefinition) => T,
-  ): Partial<Record<Language, T>> {
-    const result: Partial<Record<Language, T>> = {};
+  byLanguage<T>(select: (locale: LocaleDefinition) => T): LocaleCategoryMap<T> {
+    const result: LocaleCategoryMap<T> = {
+      [Language.English]: select(this.registry.english()),
+    };
 
     for (const locale of this.registry.registered()) {
       result[locale.code] = select(locale);

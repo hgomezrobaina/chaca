@@ -24,7 +24,7 @@ describe("word modules", () => {
   });
 
   it.each(cases)("word.%s. language: 'es'", (method, category) => {
-    expect(modules.word.constants.words.es[category]).include(
+    expect(modules.word.constants.words.es![category]).include(
       modules.word[method]({ language: Language.Spanish }),
     );
   });

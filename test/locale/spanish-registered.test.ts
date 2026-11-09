@@ -11,7 +11,7 @@ describe("Spanish registered", () => {
   });
 
   it("word methods return a Spanish word when asked for Language.Spanish", () => {
-    const words = modules.word.constants.words.es;
+    const words = modules.word.constants.words.es!;
 
     expect(words.nouns).include(
       modules.word.noun({ language: Language.Spanish }),
@@ -37,7 +37,7 @@ describe("Spanish registered", () => {
   });
 
   it("person name methods return a Spanish name when asked for Language.Spanish", () => {
-    const names = modules.person.constants.names.es;
+    const names = modules.person.constants.names.es!;
 
     expect([...names.female, ...names.male]).include(
       modules.person.firstName({ language: Language.Spanish }),
@@ -69,8 +69,8 @@ describe("Spanish registered", () => {
       modules.person.zodiacSign({ language: Language.Spanish }),
     );
     expect([
-      ...constants.prefixes.es.male,
-      ...constants.prefixes.es.female,
+      ...constants.prefixes.es!.male,
+      ...constants.prefixes.es!.female,
     ]).include(modules.person.prefix({ language: Language.Spanish }));
   });
 
@@ -89,7 +89,7 @@ describe("Spanish registered", () => {
   it("address methods return a Spanish value when asked for Language.Spanish", () => {
     const constants = modules.address.constants;
 
-    expect(constants.countries.es.map((c) => c.country)).include(
+    expect(constants.countries.es!.map((c) => c.country)).include(
       modules.address.country({ language: Language.Spanish }),
     );
     expect(constants.cardinalDirections.es).include(
@@ -118,16 +118,16 @@ describe("Spanish registered", () => {
     expect(constants.transactionTypes.es).include(
       modules.finance.transaction({ language: Language.Spanish }),
     );
-    expect(Object.values(constants.currencyNames.es)).include(
+    expect(Object.values(constants.currencyNames.es!)).include(
       modules.finance.currencyMoneyName({ language: Language.Spanish }),
     );
   });
 
   it("science methods return a Spanish value when asked for Language.Spanish", () => {
-    expect(Object.values(modules.science.constants.elementNames.es)).include(
+    expect(Object.values(modules.science.constants.elementNames.es!)).include(
       modules.science.periodicTableElement({ language: Language.Spanish }),
     );
-    expect(Object.values(modules.science.constants.unitNames.es)).include(
+    expect(Object.values(modules.science.constants.unitNames.es!)).include(
       modules.science.unit({ language: Language.Spanish }),
     );
   });

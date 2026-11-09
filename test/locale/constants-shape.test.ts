@@ -12,14 +12,14 @@ describe("modules.<module>.constants keeps its pre-locale shape", () => {
 
   it("word.constants.words exposes one key per registered locale, same shape as before", () => {
     expect(modules.word.constants.words.en.nouns.length).toBeGreaterThan(0);
-    expect(modules.word.constants.words.es.nouns).toEqual(es.word.nouns);
+    expect(modules.word.constants.words.es!.nouns).toEqual(es.word.nouns);
   });
 
   it("person.constants.names exposes one key per registered locale, same shape as before", () => {
     expect(modules.person.constants.names.en.female.length).toBeGreaterThan(0);
-    expect(modules.person.constants.names.es.female).toEqual(es.person.female);
-    expect(modules.person.constants.names.es.male).toEqual(es.person.male);
-    expect(modules.person.constants.names.es.lastNames).toEqual(
+    expect(modules.person.constants.names.es!.female).toEqual(es.person.female);
+    expect(modules.person.constants.names.es!.male).toEqual(es.person.male);
+    expect(modules.person.constants.names.es!.lastNames).toEqual(
       es.person.lastNames,
     );
   });

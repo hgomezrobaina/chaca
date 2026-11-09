@@ -16,7 +16,7 @@ describe("registerLocale", () => {
     );
 
     expect(spanishEntries).toHaveLength(1);
-    expect(modules.word.constants.words.es.nouns).toEqual(es.word.nouns);
+    expect(modules.word.constants.words.es!.nouns).toEqual(es.word.nouns);
   });
 
   it("re-registering English replaces the default locale, including for calls with no language", () => {
