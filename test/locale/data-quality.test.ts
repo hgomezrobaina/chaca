@@ -125,3 +125,15 @@ describe("the data errors the competitor-research report found are fixed (E2E-12
     expect(es.person.female).toContain("Belén");
   });
 });
+
+describe("en.person.prefixes is no longer mistitled (pendientes.md P-1)", () => {
+  it("'Mrs.' moved out of male and into female", () => {
+    expect(en.person.prefixes.male).not.toContain("Mrs.");
+    expect(en.person.prefixes.female).toContain("Mrs.");
+  });
+
+  it("female now has a 'Dr.' equivalent, same as male", () => {
+    expect(en.person.prefixes.male).toContain("Dr.");
+    expect(en.person.prefixes.female).toContain("Dr.");
+  });
+});

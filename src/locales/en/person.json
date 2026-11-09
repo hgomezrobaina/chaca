@@ -640,12 +640,13 @@
   "prefixes": {
     "male": [
       "Mr.",
-      "Mrs.",
       "Dr."
     ],
     "female": [
+      "Mrs.",
       "Ms.",
-      "Miss"
+      "Miss",
+      "Dr."
     ]
   },
   "genders": [
