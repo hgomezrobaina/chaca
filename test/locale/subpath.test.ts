@@ -1,3 +1,5 @@
+// `dist/` does not exist yet when `npm run build` lints (lint runs before tsup).
+/* eslint-disable import/no-unresolved */
 import { existsSync } from "fs";
 import { resolve } from "path";
 import { describe, expect, it } from "vitest";
