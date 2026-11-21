@@ -16,8 +16,20 @@ import { WordModule } from "./word";
 import { ColorModule } from "./color";
 import { DistributionModule } from "./distribution";
 import { ChacaUtils } from "../core/utils";
+import { LocaleRegistry } from "../core/locale/locale-registry";
+import { LocaleCategoryResolver } from "../core/locale/locale-category-resolver";
+import { LocaleDefinition } from "../core/locale/locale";
 
 export class ChacaModules {
+  /**
+   * One registry (and one resolver over it) per instance, not per process:
+   * two `ChacaModules` (two tests, or a library build and the server that
+   * embeds it) each keep their own registered locales, and never leak into
+   * one another.
+   */
+  private readonly registry = new LocaleRegistry();
+  private readonly locales = new LocaleCategoryResolver(this.registry);
+
   readonly internet: InternetModule;
   readonly datatype: DatatypeModule;
   readonly id: IdModule;
@@ -38,26 +50,35 @@ export class ChacaModules {
 
   constructor(utils: ChacaUtils) {
     this.datatype = new DatatypeModule(utils);
-    this.address = new AddressModule(utils, this.datatype);
+    this.address = new AddressModule(utils, this.datatype, this.locales);
     this.id = new IdModule(this.datatype);
-    this.color = new ColorModule(utils, this.datatype);
-    this.person = new PersonModule(utils, this.datatype);
-    this.word = new WordModule(utils);
+    this.color = new ColorModule(utils, this.datatype, this.locales);
+    this.person = new PersonModule(utils, this.datatype, this.locales);
+    this.word = new WordModule(utils, this.locales);
     this.internet = new InternetModule(
       this.datatype,
       utils,
       this.person,
       this.word,
     );
-    this.science = new ScienceModule(utils);
-    this.vehicle = new VehicleModule(utils);
-    this.lorem = new LoremModule(this.datatype);
+    this.science = new ScienceModule(utils, this.locales);
+    this.vehicle = new VehicleModule(utils, this.locales);
+    this.lorem = new LoremModule(this.datatype, this.locales);
     this.phone = new PhoneModule(utils, this.datatype);
     this.system = new SystemModule(utils, this.datatype, this.word);
     this.image = new ImageModule(this.datatype, this.word);
-    this.finance = new FinanceModule(utils, this.datatype);
-    this.animal = new AnimalModule(utils);
-    this.date = new DateModule(this.datatype, utils);
+    this.finance = new FinanceModule(utils, this.datatype, this.locales);
+    this.animal = new AnimalModule(utils, this.locales);
+    this.date = new DateModule(this.datatype, utils, this.locales);
     this.distribution = new DistributionModule(utils);
+  }
+
+  /**
+   * Registers a locale so every method that accepts `language` can return
+   * its data. Registering the same code twice replaces the previous locale;
+   * nothing is registered by default beyond the built-in `en`.
+   */
+  registerLocale(locale: LocaleDefinition): void {
+    this.registry.register(locale);
   }
 }

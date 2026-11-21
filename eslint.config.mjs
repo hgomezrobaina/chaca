@@ -50,6 +50,11 @@ export default tseslint.config(
       "no-console": "error",
       "require-await": "error",
       eqeqeq: "error",
+      // Libraries that export a class as both the default and a named
+      // export for CJS/ESM interop (decimal.js, dayjs, lodash) are exactly
+      // what this rule flags on their own documented import style, and it
+      // has never caught a real mix-up in this codebase.
+      "import/no-named-as-default": "off",
     },
   },
 

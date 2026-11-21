@@ -26,37 +26,3 @@ export const CSS_FUNCTIONS = [
 
 export type CSSFunction = (typeof CSS_FUNCTIONS)[number];
 export type CSSSpace = (typeof CSS_SPACES)[number];
-
-export const HUMAN_COLORS = [
-  "azure",
-  "black",
-  "blue",
-  "cyan",
-  "fuchsia",
-  "gold",
-  "green",
-  "grey",
-  "indigo",
-  "ivory",
-  "lavender",
-  "lime",
-  "magenta",
-  "maroon",
-  "mint green",
-  "olive",
-  "orange",
-  "orchid",
-  "pink",
-  "plum",
-  "purple",
-  "red",
-  "salmon",
-  "silver",
-  "sky blue",
-  "tan",
-  "teal",
-  "turquoise",
-  "violet",
-  "white",
-  "yellow",
-];

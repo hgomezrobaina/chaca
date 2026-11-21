@@ -7,60 +7,33 @@ A university: students enroll in courses taught by teachers, get grades, pay for
 | Entity         | Documents             | Description                                                        |
 | -------------- | --------------------- | ------------------------------------------------------------------ |
 | `User`         | 150                   | Base identity. `role` is `student` (70%), `teacher` or `admin`.    |
-| `Student`      | one per student user  | Extension of `User`; always at least 16 years old.                 |
-| `Teacher`      | one per teacher user  | Extension of `User`; belongs to a `Department`.                    |
+| `Student`      | one per student user  | Extension of `User`; always at least 16 years old. `code` is a unique sequence. |
+| `Teacher`      | one per teacher user  | Extension of `User`; belongs to a `Department`. At most one dean per `School`. |
 | `School`       | 20                    | Top-level academic unit.                                           |
 | `Department`   | 30                    | Belongs to a `School`.                                             |
 | `Program`      | 35                    | Degree program; `period_duration` between 4 and 8.                 |
-| `Course`       | 100                   | 1–10 credits; taught by a `Teacher`.                               |
+| `Course`       | 100                   | 1–10 credits; taught by a `Teacher`. `code` is a unique sequence (type changed from string to number). |
 | `Registration` | 120                   | A student enrolled in a course for a period (e.g. `2022-1`).       |
-| `Grade`        | 120                   | One per registration (`registration_id` unique ref).               |
-| `Payment`      | 200                   | Payment for an active registration; `amount` is the program cost.  |
+| `Grade`        | one per `approved`/`failed` registration | `registration_id` unique ref.               |
+| `Payment`      | one per `active` registration | `amount` depends on `concept` (see below).  |
 | `Book`         | 60                    | Library stock.                                                     |
 | `BookLoan`     | 30                    | A student borrowing a book.                                        |
 
-## Relationships
+## Schema
 
-```mermaid
-erDiagram
-    User ||--o| Student : "id (role = student)"
-    User ||--o| Teacher : "id (role = teacher)"
-    School ||--o{ Department : school_id
-    School |o--o{ Teacher : school_dean_id
-    Department ||--o{ Program : department_id
-    Department ||--o{ Teacher : department_id
-    Program ||--o{ Course : program_id
-    Program ||--o{ Student : program_id
-    Teacher ||--o{ Course : teacher_id
-    Student ||--o{ Registration : student_id
-    Course ||--o{ Registration : course_id
-    Registration ||--o| Grade : "registration_id (unique)"
-    Registration ||--o{ Payment : registration_id
-    Student ||--o{ BookLoan : student_id
-    Book ||--o{ BookLoan : book_id
-```
+See [schema.md](./schema.md) for the full ER diagram, a field-by-field table per entity and the rule table — generated from the schema definitions, never hand-written.
 
-## Business rules encoded in the schemas
+## Business rules
 
-- **Student/Teacher counts follow User roles**: same 1:1 "table inheritance" pattern as the ecommerce case.
-- **Student**: `birthdate` guarantees a minimum age of 16, and `actual_period` never exceeds the program's `period_duration`.
-- **Teacher**: `school_dean_id` is `null` unless the teacher is `active`.
-- **Course**: an active course can only be taught by an `active` teacher.
-- **Registration**: a student cannot enroll twice in the same course and period, and cannot exceed 20 credits per period.
-- **Grade**: `final_grade` range depends on the registration status — `approved` ⇒ 60–100, `failed` ⇒ 0–59.
-- **Payment**: only references `active` registrations; `amount` resolves the registration → course → program chain to charge the program's cost; a registration can have at most one non-failed payment.
-- **BookLoan**: only books with stock (`count > 0`) can be borrowed; a student can hold at most 5 open loans (`loan`/`late`); `return_date` only exists for `returned` loans and is always after the loan `date`.
+Every rule below has its own assertion in [rules.ts](rules.ts) (the full, field-level list is the generated "Rules" table in [schema.md](./schema.md)).
 
-## Validations (in [university.test.ts](university.test.ts))
-
-- Every grade belongs to exactly one registration, and a registration has at most one grade.
-- Grade ranges match the registration status (`approved` ⇒ ≥ 60, `failed` ⇒ ≤ 59).
-- No student is registered twice in the same course and period, and no student exceeds 20 credits per period.
-- Courses have 1–10 credits, and active courses only have active teachers.
-- Payments only reference `active` registrations, their `amount` equals the program's cost, and a registration has at most one non-failed payment.
-- Books always have non-negative stock, and only books with stock can be loaned.
-- A student has at most 5 open book loans, and returned loans have `return_date` > `date`.
-- `Student`/`Teacher` counts match users with the corresponding role.
-- Teachers who are not `active` have `school_dean_id = null`.
-- Programs last between 4 and 8 periods, and all students are at least 16 years old.
-- `actual_period` of a student never exceeds their program's `period_duration`.
+1. **`Student`/`Teacher` are a 1:1 extension of `User`** (`Student.id`, `Teacher.id`, `User.role`): same pattern as the ecommerce case's `Client`/`Employee`.
+2. **Student** (`Student.birthdate`, `.code`, `.actual_period`, `Program.period_duration`): at least 16 years old; `code` is a unique sequence; `actual_period` never exceeds the program's `period_duration`.
+3. **Teacher deanship** (`Teacher.school_dean_id`, `.status`): `null` unless the teacher is `active`; its ref rejects a school that already has a dean, so a school never has more than one. **Modeling note**: the dean stays on `Teacher.school_dean_id` rather than moving to `School.dean_id`, because that direction would close the cycle `School → Teacher → Department → School` (a department belongs to a school, a teacher to a department, and a school's dean would be a teacher), which chaca rejects with `CyclicAccessDataError`.
+4. **Course** (`Course.code`, `.credits`, `.teacher_id`, `Teacher.status`): `code` is a unique sequence (not a random string); `credits` is 1–10; an active course is only taught by an `active` teacher.
+5. **Registration** (`Registration.student_id`, `.course_id`, `.period`, `.registration_date`): a student never enrolls twice in the same course and period, nor exceeds 20 credits per period; `registration_date` is derived from `period` (e.g. `2022-1` falls between January and June 2022), capped at the current date.
+6. **`Grade` is a 1:1 extension of terminal registrations** (`Grade.registration_id`, `Registration.status`): a unique ref to `approved`/`failed` registrations, with a matching dynamic `documents` count.
+7. **`Grade` follows its registration** (`Grade.final_grade`, `.created_at`): range depends on status (`approved` ⇒ 60–100, `failed` ⇒ 0–59); `created_at` is on or after the registration's `registration_date`.
+8. **`Payment` is a 1:1 extension of active registrations** (`Payment.registration_id`, `Registration.status`): a unique ref to `active` registrations, with a matching dynamic `documents` count — every active registration gets exactly one payment, never two.
+9. **`Payment.amount` depends on `concept`** (`Payment.amount`, `.concept`): `registration` charges the program's cost (registration → course → program chain); `extra-course` charges the course's credits × a per-credit fee; `certificate` and `library` charge fixed fees (`definitions/fees.ts`).
+10. **`BookLoan`** (`BookLoan.status`, `.book_id`, `.student_id`, `.return_date`, `.date`, `Book.count`): a book is borrowed only while its open loans (`loan`/`late`) are fewer than its `count`; a student holds at most 5 open loans; `return_date` only exists for `returned` loans, and is after the loan `date`.

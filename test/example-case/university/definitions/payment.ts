@@ -1,46 +1,76 @@
 import { chaca, modules } from "../../../../src";
+import { FindRef } from "../../core/find-ref";
+import {
+  PaymentConcept,
+  PaymentMethod,
+  PaymentStatus,
+  RegistrationStatus,
+} from "../types";
+import {
+  CERTIFICATE_FEE,
+  EXTRA_COURSE_FEE_PER_CREDIT,
+  LIBRARY_FINE,
+} from "./fees";
 
 export const PAYMENT_SCHEMA = chaca.schema({
   id: chaca.key(() => modules.id.uuid()),
-  method: chaca.enum(["credit-card", "transfer", "cash"]),
+  method: chaca.enum([
+    PaymentMethod.CreditCard,
+    PaymentMethod.Transfer,
+    PaymentMethod.Cash,
+  ]),
   registration_id: chaca.ref("Registration.id", {
+    unique: true,
     where: ({ refFields }) => {
-      return refFields.status === "active";
+      return refFields.status === RegistrationStatus.Active;
     },
   }),
-  status: ({ currentFields, store }) => {
-    const exists = store.currentDocuments().filter((r) => {
-      return (
-        r.id !== currentFields.id &&
-        r.registration_id === currentFields.registration_id &&
-        r.status !== "failed"
-      );
-    });
-
-    if (exists.length > 0) {
-      return "failed";
-    } else {
-      return chaca.utils.oneOfArray(["pending", "completed", "failed"]);
-    }
-  },
+  status: chaca.enum([
+    PaymentStatus.Pending,
+    PaymentStatus.Completed,
+    PaymentStatus.Failed,
+  ]),
   concept: chaca.enum([
-    "registration",
-    "extra-course",
-    "certificate",
-    "library",
+    PaymentConcept.Registration,
+    PaymentConcept.ExtraCourse,
+    PaymentConcept.Certificate,
+    PaymentConcept.Library,
   ]),
   amount: async ({ currentFields, store }) => {
+    if (currentFields.concept === PaymentConcept.Certificate) {
+      return CERTIFICATE_FEE;
+    }
+
+    if (currentFields.concept === PaymentConcept.Library) {
+      return LIBRARY_FINE;
+    }
+
     const registrations = await store.get("Registration");
     const courses = await store.get("Course");
+
+    const registration = FindRef.execute({
+      documents: registrations,
+      id: currentFields.registration_id,
+      from: "Payment.registration_id",
+    });
+    const course = FindRef.execute({
+      documents: courses,
+      id: registration.course_id,
+      from: "Registration.course_id",
+    });
+
+    if (currentFields.concept === PaymentConcept.ExtraCourse) {
+      return course.credits * EXTRA_COURSE_FEE_PER_CREDIT;
+    }
+
     const programs = await store.get("Program");
+    const program = FindRef.execute({
+      documents: programs,
+      id: course.program_id,
+      from: "Course.program_id",
+    });
 
-    const rfound = registrations.find(
-      (r) => r.id === currentFields.registration_id,
-    );
-    const cfound = courses.find((c) => c.id === rfound.course_id);
-    const cprogram = programs.find((p) => p.id === cfound.program_id);
-
-    return cprogram.cost;
+    return program.cost;
   },
   created_at: () => modules.date.past(),
 });

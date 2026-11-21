@@ -37,6 +37,13 @@ jobs:
       - name: 🪛 Build Chaca
         run: pnpm build
 
+      # `pnpm build` solo typechecka src/ (vía tsup). test/ no se typechecka en
+      # ningún otro paso: vitest transpila sin tipar, así que un error de tipos
+      # en test/ pasaba la CI en verde hasta que alguien lo corría a mano
+      # (pendientes.md P-18 de docs/specs/locale-completeness).
+      - name: 🔎 Typecheck tests
+        run: pnpm typecheck:cases
+
       - name: 🧪 Test
         run: pnpm test
 

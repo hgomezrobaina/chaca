@@ -1,6 +1,6 @@
 {
   "name": "chaca",
-  "version": "2.4.0",
+  "version": "3.0.0",
   "description": "Create and export mock data with your rules",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -24,6 +24,21 @@
       },
       "default": "./dist/index.mjs"
     },
+    "./locale/*": {
+      "types": "./dist/locale/*.d.ts",
+      "browser": {
+        "types": "./dist/browser/locale/*.d.ts",
+        "import": "./dist/browser/locale/*.mjs",
+        "require": "./dist/browser/locale/*.js",
+        "default": "./dist/browser/locale/*.mjs"
+      },
+      "node": {
+        "types": "./dist/locale/*.d.ts",
+        "import": "./dist/locale/*.mjs",
+        "require": "./dist/locale/*.js"
+      },
+      "default": "./dist/locale/*.mjs"
+    },
     "./package.json": "./package.json"
   },
   "bin": {
@@ -42,11 +57,13 @@
     "build": "npm run fix && npm run build:lib",
     "build:lib": "tsup",
     "typecheck": "tsc --noEmit",
+    "typecheck:cases": "tsc --noEmit -p tsconfig.test.json",
     "test": "vitest run",
     "test:report": "vitest run --reporter=default --reporter=html",
     "test:coverage": "rm -rf ./data && vitest run --coverage",
     "test:field-types": "vitest run test/library/field-types",
     "test:cases": "vitest run test/example-case",
+    "test:cases:docs": "vitest run test/example-case -u",
     "test:modules": "vitest run test/modules",
     "test:library": "vitest run test/library",
     "test:export": "vitest run test/library/extensions",
@@ -108,12 +125,14 @@
     "@vitest/coverage-istanbul": "^4.1.10",
     "@vitest/ui": "^4.1.10",
     "chance": "^1.1.13",
+    "decimal.js": "^10.6.0",
     "eslint": "^9.39.5",
     "eslint-config-prettier": "^10.1.8",
     "eslint-import-resolver-typescript": "^4.4.5",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^5.5.6",
     "husky": "^9.1.7",
+    "mermaid": "^12.3.0",
     "mitata": "^1.0.34",
     "picocolors": "^1.1.1",
     "prettier": "^3.9.5",

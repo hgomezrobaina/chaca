@@ -1,5 +1,6 @@
 import { DatatypeModule } from "../datatype";
 import { WordModule } from "../word";
+import { Language } from "../../core/locale/language";
 
 interface ImageProps {
   width?: number;
@@ -47,7 +48,7 @@ export class ImageModule {
   }
 
   private buildUrl(
-    category: string = this.wordModule.noun({ language: "en" }),
+    category: string = this.wordModule.noun({ language: Language.English }),
     { height: iheight, width: iwidth }: ImageProps = {},
   ) {
     const size = this.datatypeModule.int({ min: 640, max: 4000 });

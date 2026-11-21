@@ -1,10 +1,11 @@
 import { chaca, modules } from "../../../../src";
+import { AppointmentStatus, DoctorStatus } from "../types";
 
 export const APPOINTMENT_SCHEMA = chaca.schema({
   id: chaca.key(() => modules.id.uuid()),
   doctor_id: chaca.ref("Doctor.id", {
     where: ({ refFields }) => {
-      return refFields.status === "active";
+      return refFields.status === DoctorStatus.Active;
     },
   }),
   patient_id: chaca.ref("Patient.id"),
@@ -19,9 +20,16 @@ export const APPOINTMENT_SCHEMA = chaca.schema({
   },
   status: ({ currentFields }) => {
     if (currentFields.scheduled_date.getTime() > Date.now()) {
-      return chaca.utils.oneOfArray(["scheduled", "cancelled"]);
+      return chaca.utils.oneOfArray([
+        AppointmentStatus.Scheduled,
+        AppointmentStatus.Cancelled,
+      ]);
     }
 
-    return chaca.utils.oneOfArray(["completed", "cancelled", "no-show"]);
+    return chaca.utils.oneOfArray([
+      AppointmentStatus.Completed,
+      AppointmentStatus.Cancelled,
+      AppointmentStatus.NoShow,
+    ]);
   },
 });

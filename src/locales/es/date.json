@@ -1,0 +1,34 @@
+{
+  "months": [
+    "enero",
+    "febrero",
+    "marzo",
+    "abril",
+    "mayo",
+    "junio",
+    "julio",
+    "agosto",
+    "septiembre",
+    "octubre",
+    "noviembre",
+    "diciembre"
+  ],
+  "weekDays": [
+    "domingo",
+    "lunes",
+    "martes",
+    "miércoles",
+    "jueves",
+    "viernes",
+    "sábado"
+  ],
+  "timeAgoUnits": {
+    "years": "años",
+    "seconds": "segundos",
+    "minutes": "minutos",
+    "days": "días",
+    "hours": "horas",
+    "months": "meses"
+  },
+  "timeAgoTemplate": "hace {amount} {unit}"
+}

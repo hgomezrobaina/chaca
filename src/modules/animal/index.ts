@@ -1,6 +1,5 @@
 import { ChacaUtils } from "../../core/utils";
 import {
-  ANIMAL_TYPE,
   BEAR,
   BIRD,
   CAT,
@@ -16,27 +15,34 @@ import {
   SNAKE,
   FISH,
 } from "./constants";
+import { LanguageProps } from "../../core/locale/language";
+import { LocaleCategoryResolver } from "../../core/locale/locale-category-resolver";
 
 export class AnimalModule {
-  constructor(private readonly utils: ChacaUtils) {}
+  constructor(
+    private readonly utils: ChacaUtils,
+    private readonly locales: LocaleCategoryResolver,
+  ) {}
 
-  readonly constants = {
-    animalTypes: ANIMAL_TYPE,
-    bears: BEAR,
-    birds: BIRD,
-    cats: CAT,
-    ceteceans: CETACEAN,
-    cows: COW,
-    cocodrilas: CROCODILIA,
-    dogs: DOG,
-    hourses: HORSE,
-    insects: INSECT,
-    lions: LION,
-    rabbits: RABBIT,
-    rodents: RODENT,
-    snakes: SNAKE,
-    fishes: FISH,
-  };
+  get constants() {
+    return {
+      animalTypes: this.locales.byLanguage((locale) => locale.animal.types),
+      bears: BEAR,
+      birds: BIRD,
+      cats: CAT,
+      ceteceans: CETACEAN,
+      cows: COW,
+      cocodrilas: CROCODILIA,
+      dogs: DOG,
+      hourses: HORSE,
+      insects: INSECT,
+      lions: LION,
+      rabbits: RABBIT,
+      rodents: RODENT,
+      snakes: SNAKE,
+      fishes: FISH,
+    };
+  }
 
   /**
    * Returns a dog breed
@@ -165,11 +171,17 @@ export class AnimalModule {
   }
 
   /**
-   * Returns an animal type
-   * @example modules.animal.type() // 'Singapuria'
+   * Returns an animal type from a registered locale.
+   * @param args.language Locale to read from. Defaults `en`
+   * @example modules.animal.type() // 'dog'
    * @returns string
    */
-  type(): string {
-    return this.utils.oneOfArray(ANIMAL_TYPE);
+  type({ language }: LanguageProps = {}): string {
+    const types = this.locales.execute({
+      language,
+      select: (locale) => locale.animal.types,
+    });
+
+    return this.utils.oneOfArray(types);
   }
 }

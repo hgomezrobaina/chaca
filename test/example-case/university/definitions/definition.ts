@@ -1,4 +1,5 @@
-import { chaca } from "../../../../src";
+import { DatasetSchema } from "../../../../src";
+import { RegistrationStatus, UserRole } from "../types";
 import { BOOK_SCHEMA } from "./book";
 import { BOOK_LOAN } from "./book-loan";
 import { COURSE_SCHEMA } from "./course";
@@ -12,13 +13,36 @@ import { STUDENT_SCHEMA } from "./student";
 import { TEACHER_SCHEMA } from "./teacher";
 import { USER_SCHEMA } from "./user";
 
-export const UNIVERSITY_DATASET = chaca.dataset([
+export const UNIVERSITY_SCHEMAS: DatasetSchema[] = [
   { documents: 30, name: "BookLoan", schema: BOOK_LOAN },
   { documents: 60, name: "Book", schema: BOOK_SCHEMA },
   { documents: 100, name: "Course", schema: COURSE_SCHEMA },
   { documents: 30, name: "Department", schema: DEPARTMENT_SCHEMA },
-  { documents: 120, name: "Grade", schema: GRADE_SCHEMA },
-  { documents: 200, name: "Payment", schema: PAYMENT_SCHEMA },
+  {
+    documents: async ({ store }) => {
+      const registrations = await store.get("Registration");
+
+      return registrations.filter((registration) => {
+        return (
+          registration.status === RegistrationStatus.Approved ||
+          registration.status === RegistrationStatus.Failed
+        );
+      }).length;
+    },
+    name: "Grade",
+    schema: GRADE_SCHEMA,
+  },
+  {
+    documents: async ({ store }) => {
+      const registrations = await store.get("Registration");
+
+      return registrations.filter((registration) => {
+        return registration.status === RegistrationStatus.Active;
+      }).length;
+    },
+    name: "Payment",
+    schema: PAYMENT_SCHEMA,
+  },
   { documents: 35, name: "Program", schema: PROGRAM_SCHEMA },
   { documents: 120, name: "Registration", schema: REGISTRATION_SCHEMA },
   { documents: 20, name: "School", schema: SCHOOL_SCHEMA },
@@ -26,7 +50,7 @@ export const UNIVERSITY_DATASET = chaca.dataset([
     documents: async ({ store }) => {
       const users = await store.get("User");
 
-      return users.filter((u) => u.role === "student").length;
+      return users.filter((u) => u.role === UserRole.Student).length;
     },
     name: "Student",
     schema: STUDENT_SCHEMA,
@@ -35,10 +59,10 @@ export const UNIVERSITY_DATASET = chaca.dataset([
     documents: async ({ store }) => {
       const users = await store.get("User");
 
-      return users.filter((u) => u.role === "teacher").length;
+      return users.filter((u) => u.role === UserRole.Teacher).length;
     },
     name: "Teacher",
     schema: TEACHER_SCHEMA,
   },
   { documents: 150, name: "User", schema: USER_SCHEMA },
-]);
+];

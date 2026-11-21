@@ -42,6 +42,7 @@ import {
   EmptyEnumValuesError,
   PickFieldDefinitionError,
   FieldGenerationError,
+  WrongProbabilityFieldDefinitionError,
 } from "./errors";
 
 import {
@@ -102,6 +103,8 @@ import { ChacaModules } from "./modules";
 import { Dataset } from "./core/dataset/dataset";
 import { DumpConfig, DumpFile } from "./core/export/resolvers/dump/dump";
 import { FileWriter, WriteFilesProps } from "./core/export/writers/file-writer";
+import { Language, LanguageProps } from "./core/locale/language";
+import { LocaleDefinition, LocaleSource } from "./core/locale/locale";
 
 export {
   TryRefANoKeyFieldError,
@@ -113,6 +116,7 @@ export {
   EmptyEnumValuesError,
   PickFieldDefinitionError,
   FieldGenerationError,
+  WrongProbabilityFieldDefinitionError,
 };
 
 /**
@@ -134,7 +138,7 @@ export {
   PickField,
 };
 
-export { Schema, DatasetStore, Chaca, ChacaUtils, ChacaModules };
+export { Schema, DatasetStore, Chaca, ChacaUtils, ChacaModules, Language };
 
 export type {
   CustomField,
@@ -176,6 +180,9 @@ export type {
   DumpFile,
   FileWriter,
   WriteFilesProps,
+  LanguageProps,
+  LocaleDefinition,
+  LocaleSource,
 };
 
 export type {

@@ -1,12 +1,8 @@
-import {
-  ACCOUNT_TYPES,
-  IBAN,
-  MONEY_INFO,
-  SUBSCRIPTION_PLAN,
-  TRANSACTION_TYPE,
-} from "./constants";
+import { IBAN, MONEY_INFO } from "./constants";
 import { DatatypeModule } from "../datatype";
 import { ChacaUtils } from "../../core/utils";
+import { LanguageProps } from "../../core/locale/language";
+import { LocaleCategoryResolver } from "../../core/locale/locale-category-resolver";
 
 type AmountProps = {
   min?: number;
@@ -23,38 +19,62 @@ export class FinanceModule {
   constructor(
     private readonly utils: ChacaUtils,
     private readonly datatypeModule: DatatypeModule,
+    private readonly locales: LocaleCategoryResolver,
   ) {}
 
-  readonly constants = {
-    accountTypes: ACCOUNT_TYPES,
-    ibans: IBAN,
-    moneyInfo: MONEY_INFO,
-    transactionTypes: TRANSACTION_TYPE,
-    subscriptionPlans: SUBSCRIPTION_PLAN,
-  };
+  get constants() {
+    return {
+      ibans: IBAN,
+      moneyInfo: MONEY_INFO,
+      accountTypes: this.locales.byLanguage((locale) => {
+        return locale.finance.accountTypes;
+      }),
+      transactionTypes: this.locales.byLanguage((locale) => {
+        return locale.finance.transactionTypes;
+      }),
+      subscriptionPlans: this.locales.byLanguage((locale) => {
+        return locale.finance.subscriptionPlans;
+      }),
+      currencyNames: this.locales.byLanguage((locale) => {
+        return locale.finance.currencyNames;
+      }),
+    };
+  }
 
   /**
-   * Returns a transaction type
+   * Returns a transaction type from a registered locale.
    *
+   * @param args.language Locale to read from. Defaults `en`
    * @example
    * modules.finance.transaction() // 'payment'
    *
    * @returns string
    */
-  transaction(): string {
-    return this.utils.oneOfArray(this.constants.transactionTypes);
+  transaction({ language }: LanguageProps = {}): string {
+    const transactionTypes = this.locales.execute({
+      language,
+      select: (locale) => locale.finance.transactionTypes,
+    });
+
+    return this.utils.oneOfArray(transactionTypes);
   }
 
   /**
-   * Returns a suscription plan type
+   * Returns a suscription plan type from a registered locale.
    *
+   * @param args.language Locale to read from. Defaults `en`
    * @example
    * modules.finance.subscriptionPlan() // 'Free'
    *
    * @returns string
    */
-  subscriptionPlan(): string {
-    return this.utils.oneOfArray(this.constants.subscriptionPlans);
+  subscriptionPlan({ language }: LanguageProps = {}): string {
+    const subscriptionPlans = this.locales.execute({
+      language,
+      select: (locale) => locale.finance.subscriptionPlans,
+    });
+
+    return this.utils.oneOfArray(subscriptionPlans);
   }
 
   /**
@@ -130,13 +150,21 @@ export class FinanceModule {
   }
 
   /**
+   * Returns an account type from a registered locale.
+   *
+   * @param args.language Locale to read from. Defaults `en`
    * @example
    * modules.finance.accountType() // "Credit Card"
    *
    * @returns string
    */
-  accountType(): string {
-    return this.utils.oneOfArray(ACCOUNT_TYPES);
+  accountType({ language }: LanguageProps = {}): string {
+    const accountTypes = this.locales.execute({
+      language,
+      select: (locale) => locale.finance.accountTypes,
+    });
+
+    return this.utils.oneOfArray(accountTypes);
   }
 
   /**
@@ -244,14 +272,21 @@ export class FinanceModule {
   }
 
   /**
-   * Returns a current money name
+   * Returns a current money name, named in a registered locale. The rest of
+   * the currency's ticket (symbol, decimals, ISO code) is not locale-specific
+   * and stays on `constants.moneyInfo`.
+   *
+   * @param args.language Locale to read from. Defaults `en`
    * @example modules.finance.currencyMoneyName() // 'Us Dollar'
    * @returns string
    */
-  currencyMoneyName(): string {
-    return this.utils.oneOfArray(
-      Object.values(MONEY_INFO).map((el) => el.name),
-    );
+  currencyMoneyName({ language }: LanguageProps = {}): string {
+    const currencyNames = this.locales.execute({
+      language,
+      select: (locale) => locale.finance.currencyNames,
+    });
+
+    return this.utils.oneOfArray(Object.values(currencyNames));
   }
 
   /**

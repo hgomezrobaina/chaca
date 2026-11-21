@@ -1,0 +1,17 @@
+{
+  "types": [
+    "perro",
+    "gato",
+    "serpiente",
+    "oso",
+    "león",
+    "cetáceo",
+    "insecto",
+    "cocodrilo",
+    "vaca",
+    "ave",
+    "pez",
+    "conejo",
+    "caballo"
+  ]
+}

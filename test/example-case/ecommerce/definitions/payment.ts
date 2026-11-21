@@ -1,41 +1,50 @@
 import { chaca, modules } from "../../../../src";
+import { FindRef } from "../../core/find-ref";
+import { OrderStatus, PaymentMethod, PaymentStatus } from "../types";
 
 export const PAYMENT_SCHEMA = chaca.schema({
   id: chaca.key(() => modules.id.uuid()),
-  order_id: chaca.ref("Order.id"),
+  order_id: chaca.ref("Order.id", {
+    unique: true,
+    where: ({ refFields }) => {
+      return refFields.status !== OrderStatus.Canceled;
+    },
+  }),
   pay_date: async ({ currentFields, store }) => {
     const orders = await store.get("Order");
-    const found = orders.find((o) => o.id === currentFields.order_id);
+    const order = FindRef.execute({
+      documents: orders,
+      id: currentFields.order_id,
+      from: "Payment.order_id",
+    });
 
-    if (found) {
-      return modules.date.between({ from: found.order_date, to: new Date() });
-    }
-
-    return modules.date.past();
+    return modules.date.between({ from: order.order_date, to: new Date() });
   },
   amount: async ({ store, currentFields }) => {
-    const orders = await store.get("Order");
-    const found = orders.find((o) => o.id === currentFields.order_id);
+    const orderDetails = await store.get("OrderDetail");
 
-    if (found) {
-      return found.total;
-    }
-
-    return modules.datatype.float({ precision: 2, min: 10, max: 100 });
+    return orderDetails
+      .filter((detail) => detail.order_id === currentFields.order_id)
+      .reduce((total, detail) => total + detail.subtotal, 0);
   },
-  payment_method: chaca.enum(["credit-card", "transfer", "paypal", "crypto"]),
+  payment_method: chaca.enum([
+    PaymentMethod.CreditCard,
+    PaymentMethod.Transfer,
+    PaymentMethod.Paypal,
+    PaymentMethod.Crypto,
+  ]),
   status: async ({ currentFields, store }) => {
     const orders = await store.get("Order");
-    const found = orders.find((o) => o.id === currentFields.order_id);
+    const order = FindRef.execute({
+      documents: orders,
+      id: currentFields.order_id,
+      from: "Payment.order_id",
+    });
 
-    if (found) {
-      if (found.status === "delivered") {
-        return "completed";
-      } else {
-        return chaca.utils.oneOfArray(["pending", "fail"]);
-      }
+    if (order.status === OrderStatus.Delivered) {
+      return PaymentStatus.Completed;
     }
 
-    return chaca.utils.oneOfArray(["pending", "completed", "fail"]);
+    return chaca.utils.oneOfArray([PaymentStatus.Pending, PaymentStatus.Fail]);
   },
 });

@@ -1,4 +1,6 @@
 import { chaca, modules } from "../../../../src";
+import { FindRef } from "../../core/find-ref";
+import { BookingStatus } from "../types";
 
 const SEAT_LETTERS = "ABCDEF";
 
@@ -7,21 +9,29 @@ export const CHECK_IN_SCHEMA = chaca.schema({
   booking_id: chaca.ref("Booking.id", {
     unique: true,
     where: ({ refFields }) => {
-      return refFields.status === "checked-in";
+      return refFields.status === BookingStatus.CheckedIn;
     },
   }),
   seat: async ({ currentFields, store }) => {
     const bookings = await store.get("Booking");
-    const booking = bookings.find((b) => b.id === currentFields.booking_id);
+    const booking = FindRef.execute({
+      documents: bookings,
+      id: currentFields.booking_id,
+      from: "CheckIn.booking_id",
+    });
 
     const index = store.currentDocuments().filter((c) => {
       if (c.id === currentFields.id) {
         return false;
       }
 
-      const other = bookings.find((b) => b.id === c.booking_id);
+      const other = FindRef.execute({
+        documents: bookings,
+        id: c.booking_id,
+        from: "CheckIn.booking_id",
+      });
 
-      return other !== undefined && other.flight_id === booking.flight_id;
+      return other.flight_id === booking.flight_id;
     }).length;
 
     const row = Math.floor(index / SEAT_LETTERS.length) + 1;
@@ -33,8 +43,16 @@ export const CHECK_IN_SCHEMA = chaca.schema({
     const bookings = await store.get("Booking");
     const flights = await store.get("Flight");
 
-    const booking = bookings.find((b) => b.id === currentFields.booking_id);
-    const flight = flights.find((f) => f.id === booking.flight_id);
+    const booking = FindRef.execute({
+      documents: bookings,
+      id: currentFields.booking_id,
+      from: "CheckIn.booking_id",
+    });
+    const flight = FindRef.execute({
+      documents: flights,
+      id: booking.flight_id,
+      from: "Booking.flight_id",
+    });
 
     const to = new Date(Math.min(flight.departure.getTime(), Date.now()));
 

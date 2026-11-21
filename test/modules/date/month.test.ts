@@ -3,6 +3,6 @@ import { modules } from "../../../src";
 
 describe("date.month", () => {
   it("should return a constant month", () => {
-    expect(modules.date.constants.months).include(modules.date.month());
+    expect(modules.date.constants.months.en).include(modules.date.month());
   });
 });

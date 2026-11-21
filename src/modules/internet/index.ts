@@ -5,6 +5,7 @@ import { HTTP_STATUS } from "./constants/httpStatus";
 import { HTTP_METHODS } from "./constants/http_method";
 import { GenerateUserAgent } from "./core/user-agent";
 import { PersonModule } from "../person";
+import { Language } from "../../core/locale/language";
 import { PROTOCOL } from "./constants/protocol";
 import { OAUTH_PROVIDER } from "./constants/oauth";
 import { LOCALE } from "./constants/locale";
@@ -234,7 +235,7 @@ export class InternetModule {
   }: UsernameArgs = {}): string {
     const firstName = ifirstName
       ? this.utils.camelCase(ifirstName)
-      : this.personModule.firstName({ language: "en" });
+      : this.personModule.firstName({ language: Language.English });
     const lastName = ilastName ? this.utils.camelCase(ilastName) : "";
 
     const ran = this.datatypeModule.int({ min: 0, max: 3 });
@@ -446,13 +447,13 @@ export class InternetModule {
    * @returns string
    */
   domainName(): string {
-    const name: string = this.wordModule.noun({ language: "en" });
+    const name: string = this.wordModule.noun({ language: Language.English });
     const tale = this.datatypeModule.boolean();
 
     if (tale) {
       const t = this.utils.oneOfArray([
         "info",
-        this.wordModule.adjective({ language: "en" }),
+        this.wordModule.adjective({ language: Language.English }),
       ]);
       const sep = this.utils.oneOfArray([".", "-"]);
 

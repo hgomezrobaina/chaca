@@ -3,6 +3,6 @@ import { modules } from "../../../src";
 
 describe("data.weekDay", () => {
   it("should return a week day constant value", () => {
-    expect(modules.date.constants.weekDays).include(modules.date.weekDay());
+    expect(modules.date.constants.weekDays.en).include(modules.date.weekDay());
   });
 });

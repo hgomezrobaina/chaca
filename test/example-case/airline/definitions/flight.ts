@@ -1,4 +1,6 @@
 import { chaca, modules } from "../../../../src";
+import { FindRef } from "../../core/find-ref";
+import { AircraftStatus, FlightStatus } from "../types";
 
 export const FLIGHT_SCHEMA = chaca.schema({
   id: chaca.key(() => modules.id.uuid()),
@@ -15,7 +17,11 @@ export const FLIGHT_SCHEMA = chaca.schema({
   },
   arrival: async ({ currentFields, store }) => {
     const routes = await store.get("Route");
-    const route = routes.find((r) => r.id === currentFields.route_id);
+    const route = FindRef.execute({
+      documents: routes,
+      id: currentFields.route_id,
+      from: "Flight.route_id",
+    });
 
     return new Date(
       currentFields.departure.getTime() + route.duration_min * 60 * 1000,
@@ -23,7 +29,7 @@ export const FLIGHT_SCHEMA = chaca.schema({
   },
   aircraft_id: chaca.ref("Aircraft.id", {
     where: ({ refFields, currentFields, store }) => {
-      if (refFields.status !== "active") {
+      if (refFields.status !== AircraftStatus.Active) {
         return false;
       }
 
@@ -43,20 +49,28 @@ export const FLIGHT_SCHEMA = chaca.schema({
     nullOnEmpty: true,
     where: async ({ refFields, currentFields, store }) => {
       const routes = await store.get("Route");
-      const route = routes.find((r) => r.id === currentFields.route_id);
+      const route = FindRef.execute({
+        documents: routes,
+        id: currentFields.route_id,
+        from: "Flight.route_id",
+      });
 
-      if (route) {
-        return refFields.airport_id === route.origin_airport_id;
-      }
-
-      return false;
+      return refFields.airport_id === route.origin_airport_id;
     },
   }),
   status: ({ currentFields }) => {
     if (currentFields.departure.getTime() > Date.now()) {
-      return chaca.utils.oneOfArray(["scheduled", "boarding", "cancelled"]);
+      return chaca.utils.oneOfArray([
+        FlightStatus.Scheduled,
+        FlightStatus.Boarding,
+        FlightStatus.Cancelled,
+      ]);
     }
 
-    return chaca.utils.oneOfArray(["departed", "landed", "cancelled"]);
+    return chaca.utils.oneOfArray([
+      FlightStatus.Departed,
+      FlightStatus.Landed,
+      FlightStatus.Cancelled,
+    ]);
   },
 });

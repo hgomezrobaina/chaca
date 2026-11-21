@@ -1,4 +1,6 @@
 import { chaca, modules } from "../../../../src";
+import { FindRef } from "../../core/find-ref";
+import { SeatClass } from "../types";
 
 export const BAGGAGE_SCHEMA = chaca.schema({
   id: chaca.key(() => modules.id.uuid()),
@@ -8,10 +10,18 @@ export const BAGGAGE_SCHEMA = chaca.schema({
     const checkins = await store.get("CheckIn");
     const bookings = await store.get("Booking");
 
-    const checkin = checkins.find((c) => c.id === currentFields.checkin_id);
-    const booking = bookings.find((b) => b.id === checkin.booking_id);
+    const checkin = FindRef.execute({
+      documents: checkins,
+      id: currentFields.checkin_id,
+      from: "Baggage.checkin_id",
+    });
+    const booking = FindRef.execute({
+      documents: bookings,
+      id: checkin.booking_id,
+      from: "CheckIn.booking_id",
+    });
 
-    const max = booking.seat_class === "business" ? 32 : 23;
+    const max = booking.seat_class === SeatClass.Business ? 32 : 23;
 
     return modules.datatype.float({ precision: 1, min: 5, max });
   },
